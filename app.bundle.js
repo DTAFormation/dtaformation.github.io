@@ -34815,7 +34815,7 @@
 				var _this = this;
 	
 				if (!this.localStorageService.get('pizzas')) {
-					this.$http.get(("http://app-b325c1a6-237a-4e11-bdde-39f93eee7f51.cleverapps.io") + '/pizzas').then(function (r) {
+					this.$http.get(("https://app-b325c1a6-237a-4e11-bdde-39f93eee7f51.cleverapps.io") + '/pizzas').then(function (r) {
 						return _this.localStorageService.set('pizzas', r.data);
 					});
 				}
