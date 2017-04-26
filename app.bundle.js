@@ -72,7 +72,7 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	_angular2.default.module('pizzeria', [_angularRoute2.default, 'LocalStorageModule']).value('API_URL', 'http://localhost:8080').config(_routes.routes).config(function ($routeProvider, $locationProvider) {
+	_angular2.default.module('pizzeria', [_angularRoute2.default, 'LocalStorageModule']).value('API_URL', ("https://app-b325c1a6-237a-4e11-bdde-39f93eee7f51.cleverapps.io")).config(_routes.routes).config(function ($routeProvider, $locationProvider) {
 	    $locationProvider.html5Mode(true);
 	}).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
 	    localStorageServiceProvider.setPrefix('pizzeriaLS');
@@ -34730,7 +34730,7 @@
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
 	'use strict';
 	
@@ -34743,12 +34743,13 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var PizzaService = exports.PizzaService = function () {
-		function PizzaService($http, localStorageService, $q) {
+		function PizzaService($http, localStorageService, $q, API_URL) {
 			_classCallCheck(this, PizzaService);
 	
 			this.localStorageService = localStorageService;
 			this.$http = $http;
 			this.$q = $q;
+			this.API_URL = API_URL;
 		}
 	
 		_createClass(PizzaService, [{
@@ -34757,7 +34758,7 @@
 				var _this = this;
 	
 				if (!this.localStorageService.get('pizzas')) {
-					this.$http.get(("https://app-b325c1a6-237a-4e11-bdde-39f93eee7f51.cleverapps.io") + '/pizzas').then(function (r) {
+					this.$http.get(this.API_URL + '/pizzas').then(function (r) {
 						return _this.localStorageService.set('pizzas', r.data);
 					});
 				}
