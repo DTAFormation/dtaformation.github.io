@@ -70,13 +70,15 @@
 	
 	var _ajouterPanier = __webpack_require__(16);
 	
+	var _navbar = __webpack_require__(18);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	_angular2.default.module('pizzeria', [_angularRoute2.default, 'LocalStorageModule']).value('API_URL', ("https://app-b325c1a6-237a-4e11-bdde-39f93eee7f51.cleverapps.io")).config(_routes.routes).config(function ($routeProvider, $locationProvider) {
 	    $locationProvider.html5Mode(true);
 	}).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
 	    localStorageServiceProvider.setPrefix('pizzeriaLS');
-	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscriptionComponent', _index.InscriptionComponent);
+	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscriptionComponent', _index.InscriptionComponent).component('navbar', _navbar.NavbarComponent);
 
 /***/ }),
 /* 1 */
@@ -35104,6 +35106,41 @@
 /***/ (function(module, exports) {
 
 	module.exports = "<button class=\"btn btn-primary bouton\" ng-click=\"$ctrl.ajouterAuStockageLocal()\">Ajouter au panier</button>\n"
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.NavbarComponent = undefined;
+	
+	var _navbar = __webpack_require__(19);
+	
+	var _navbar2 = _interopRequireDefault(_navbar);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var controller = function controller() {
+	    _classCallCheck(this, controller);
+	};
+	
+	var NavbarComponent = exports.NavbarComponent = {
+	    bindings: {},
+	    controller: controller,
+	    template: _navbar2.default
+	};
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports) {
+
+	module.exports = "<nav class='navbar nav-pills navbar-fixed-top'>\n\n    <div class=\"container-fluid\">\n        <div class=\"navbar-header\">\n            <button type=\"button\" class=\"navbar-toggle collapsed\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\">\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                    </button>\n            <a href=\"/\">\n                <img class=\"logo\" src=\"./img/pizza.png\">\n            </a>\n        </div>\n\n        <div id=\"navbar\" class=\"navbar-collapse collapse\">\n            <ul class=\"nav navbar-nav\">\n                <li>\n                    <a href=\"/\">Home</a>\n                </li>\n                <li>\n                    <a href=\"/pizzas\"> Pizzas </a>\n                </li>\n\n            </ul>\n            <ul class=\"nav navbar-nav navbar-right\">\n                <li><a href=\"/panier\">Mon Panier</a></li>\n                <li>\n                    <a href=\"/user\"> Mon Compte</a>\n                </li>\n                <li style=\"background:yellowgreen\">\n                    <a href=\"/login\" class=\"login\">Connexion</a>\n                </li>\n            </ul>\n        </div>\n    </div>\n</nav>"
 
 /***/ })
 /******/ ]);
