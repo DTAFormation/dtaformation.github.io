@@ -70,7 +70,9 @@
 	
 	var _ajouterPanier = __webpack_require__(16);
 	
-	var _navbar = __webpack_require__(18);
+	var _panier = __webpack_require__(18);
+	
+	var _navbar = __webpack_require__(20);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -78,7 +80,7 @@
 	    $locationProvider.html5Mode(true);
 	}).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
 	    localStorageServiceProvider.setPrefix('pizzeriaLS');
-	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscriptionComponent', _index.InscriptionComponent).component('navbar', _navbar.NavbarComponent);
+	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscriptionComponent', _index.InscriptionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent);
 
 /***/ }),
 /* 1 */
@@ -34725,6 +34727,8 @@
 	        template: '<inscription-component></inscription-component>'
 	    }).when('/pizzas', {
 	        template: '<liste-pizzas></liste-pizzas>'
+	    }).when('/panier', {
+	        template: '<panier></panier>'
 	    }).otherwise({
 	        redirectTo: '/'
 	    });
@@ -35111,6 +35115,117 @@
 /* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.PanierComponent = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _panier = __webpack_require__(19);
+	
+	var _panier2 = _interopRequireDefault(_panier);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var controller = function () {
+	    function controller(localStorageService, PizzaService) {
+	        var _this = this;
+	
+	        _classCallCheck(this, controller);
+	
+	        this.localStorageService = localStorageService;
+	        this.PizzaService = PizzaService;
+	
+	        this.panier = this.localStorageService.get('panier', 'localStorage');
+	        this.pizzas = [];
+	        this.prixTotal = 0;
+	        this.PizzaService.getPizzas().then(function (pizzas) {
+	            _this.pizzas = pizzas;
+	        }).then(function () {
+	            return _this.prixTotal = _this.getPrixTotal();
+	        });
+	    }
+	
+	    //retourne la pizza de 'pizzas' avec pizzaId
+	
+	
+	    _createClass(controller, [{
+	        key: 'getPizzabyId',
+	        value: function getPizzabyId(pizzaId) {
+	            return this.pizzas.find(function (pizza) {
+	                return pizza.id === parseInt(pizzaId);
+	            });
+	        }
+	    }, {
+	        key: 'supprimer',
+	        value: function supprimer(itemPanier) {
+	            var index = this.panier.indexOf(itemPanier);
+	            if (index > -1) {
+	                this.panier.splice(index, 1);
+	            }
+	            this.updatePanier();
+	        }
+	    }, {
+	        key: 'plusNbPizza',
+	        value: function plusNbPizza(itemPanier) {
+	            itemPanier.quantite++;
+	            this.updatePanier();
+	        }
+	    }, {
+	        key: 'moinsNbPizza',
+	        value: function moinsNbPizza(itemPanier) {
+	            if (itemPanier.quantite === 1) {
+	                this.supprimer(itemPanier);
+	            } else {
+	                itemPanier.quantite--;
+	            }
+	            this.updatePanier();
+	        }
+	
+	        //repercute tout les changements du panier local sur le localStorage
+	
+	    }, {
+	        key: 'updatePanier',
+	        value: function updatePanier() {
+	            this.localStorageService.set('panier', this.panier, 'localStorage');
+	            this.prixTotal = this.getPrixTotal();
+	        }
+	    }, {
+	        key: 'getPrixTotal',
+	        value: function getPrixTotal() {
+	            var _this2 = this;
+	
+	            if (this.panier === null) return 0;
+	            return this.panier.reduce(function (accumulateur, item) {
+	                return accumulateur + _this2.getPizzabyId(item.id).prix * item.quantite;
+	            }, 0);
+	        }
+	    }]);
+	
+	    return controller;
+	}();
+	
+	var PanierComponent = exports.PanierComponent = {
+	    bindings: {},
+	    template: _panier2.default,
+	    controller: controller
+	};
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports) {
+
+	module.exports = "<h2>\n    Votre Panier\n</h2>\n<div class=\"table-responsive table-panier\">\n    <table class=\"table\">\n        <tr ng-repeat=\"itemPanier in $ctrl.panier\" ng-init=\"pizza = $ctrl.getPizzabyId(itemPanier.id)\">\n            <td class=\"vert-align\">\n\n                <div class=\"tooltip-panier\">\n                    <img class=\"img-panier\" src=\"{{pizza.urlImage}}\">\n                    <!-- ingredients à gérer dans le modèle\n                        <span class=\"tooltiptext-panier\">\n                        <div ng-repeat=\"ingredient in pizza.ingredients\">\n                            {{ingredient}}\n                        </div>\n                    </span>\n                    -->\n                </div>\n            </td>\n            <td class=\"vert-align\">{{ pizza.nom }}\n                <span class=\"clickable-span glyphicon glyphicon-remove\" ng-click=\"$ctrl.supprimer(itemPanier)\"></span></td>\n            <td class=\"vert-align\"> <b>{{ pizza.prix }} € </b></td>\n            <td class=\"vert-align\"> <b>x{{ itemPanier.quantite }}</b>\n                <span class=\"clickable-span glyphicon glyphicon-plus\" ng-click=\"$ctrl.plusNbPizza(itemPanier)\"></span>\n                <span class=\"clickable-span glyphicon glyphicon-minus\" ng-click=\"$ctrl.moinsNbPizza(itemPanier)\"></span></td>\n        </tr>\n    </table>\n    <div class=\"container\">\n        <div class=\"row pull-right\">\n            <table class=\"table\">\n                <tr>\n                    <td>Total :</td>\n                    <td>{{$ctrl.prixTotal}} €</td>\n                </tr>\n                <!--<tr><td>Promotion :</td><td>4€</td></tr>-->\n                <tr>\n                    <td rowspan=\"2\"><button class=\"btn btn-success\">Passer commande</button></td>\n                </tr>\n            </table>\n        </div>\n    </div>\n</div>"
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports, __webpack_require__) {
+
 	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
@@ -35118,7 +35233,7 @@
 	});
 	exports.NavbarComponent = undefined;
 	
-	var _navbar = __webpack_require__(19);
+	var _navbar = __webpack_require__(21);
 	
 	var _navbar2 = _interopRequireDefault(_navbar);
 	
@@ -35137,7 +35252,7 @@
 	};
 
 /***/ }),
-/* 19 */
+/* 21 */
 /***/ (function(module, exports) {
 
 	module.exports = "<nav class='navbar nav-pills navbar-fixed-top'>\n\n    <div class=\"container-fluid\">\n        <div class=\"navbar-header\">\n            <button type=\"button\" class=\"navbar-toggle collapsed\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\">\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                    </button>\n            <a href=\"/\">\n                <img class=\"logo\" src=\"./img/pizza.png\">\n            </a>\n        </div>\n\n        <div id=\"navbar\" class=\"navbar-collapse collapse\">\n            <ul class=\"nav navbar-nav\">\n                <li>\n                    <a href=\"/\">Home</a>\n                </li>\n                <li>\n                    <a href=\"/pizzas\"> Pizzas </a>\n                </li>\n\n            </ul>\n            <ul class=\"nav navbar-nav navbar-right\">\n                <li><a href=\"/panier\">Mon Panier</a></li>\n                <li>\n                    <a href=\"/user\"> Mon Compte</a>\n                </li>\n                <li style=\"background:gold\">\n                    <a href=\"/login\" class=\"login\">Connexion</a>\n                </li>\n                <li style=\"background: gold\">\n                    <a href=\"/inscription\" class=\"login\">Inscription</a>\n                </li>\n            </ul>\n        </div>\n    </div>\n</nav>"
