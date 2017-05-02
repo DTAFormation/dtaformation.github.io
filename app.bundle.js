@@ -56,31 +56,33 @@
 	
 	var _routes = __webpack_require__(5);
 	
-	var _pizza = __webpack_require__(6);
+	var _angularLocalStorage = __webpack_require__(6);
 	
-	var _client = __webpack_require__(7);
+	var _pizza = __webpack_require__(8);
 	
-	var _commande = __webpack_require__(70);
+	var _commande = __webpack_require__(9);
 	
-	var _home = __webpack_require__(71);
+	var _client = __webpack_require__(10);
 	
-	var _pizza2 = __webpack_require__(73);
+	var _home = __webpack_require__(73);
 	
-	var _listePizzas = __webpack_require__(75);
+	var _pizza2 = __webpack_require__(75);
 	
-	var _index = __webpack_require__(77);
+	var _listePizzas = __webpack_require__(77);
 	
-	var _connexion = __webpack_require__(79);
+	var _commande2 = __webpack_require__(79);
 	
-	var _ajouterPanier = __webpack_require__(81);
+	var _inscription = __webpack_require__(81);
 	
-	var _panier = __webpack_require__(83);
+	var _connexion = __webpack_require__(83);
 	
-	var _navbar = __webpack_require__(85);
+	var _ajouterPanier = __webpack_require__(85);
 	
-	var _monCompte = __webpack_require__(87);
+	var _panier = __webpack_require__(87);
 	
-	var _commande2 = __webpack_require__(89);
+	var _navbar = __webpack_require__(89);
+	
+	var _monCompte = __webpack_require__(91);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -88,7 +90,7 @@
 	    $locationProvider.html5Mode(true);
 	}).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
 	    localStorageServiceProvider.setPrefix('pizzeriaLS');
-	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).service('CommandeService', _commande.CommandeService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscriptionComponent', _index.InscriptionComponent).component('connexion', _connexion.ConnexionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent).component('monCompte', _monCompte.MonCompteComponent).component('commandeComponent', _commande2.CommandeComponent);
+	}]).service('PizzaService', _pizza.PizzaService).service('CommandeService', _commande.CommandeService).service('ClientService', _client.ClientService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscription', _inscription.InscriptionComponent).component('connexion', _connexion.ConnexionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent).component('monCompte', _monCompte.MonCompteComponent).component('commande', _commande2.CommandeComponent);
 
 /***/ }),
 /* 1 */
@@ -34732,13 +34734,13 @@
 	    $routeProvider.when('/', {
 	        template: '<home></home>'
 	    }).when('/inscription', {
-	        template: '<inscription-component></inscription-component>'
+	        template: '<inscription></inscription>'
 	    }).when('/connexion', {
 	        template: '<connexion></connexion>'
-	    }).when('/commande/:id?', {
-	        template: '<commande-component></commande-component>'
 	    }).when('/pizzas', {
 	        template: '<liste-pizzas></liste-pizzas>'
+	    }).when('/commande', {
+	        template: '<commande></commande>'
 	    }).when('/panier', {
 	        template: '<panier></panier>'
 	    }).when('/compte', {
@@ -34750,12 +34752,573 @@
 
 /***/ }),
 /* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	__webpack_require__(7);
+	module.exports = 'LocalStorageModule';
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports) {
+
+	/**
+	 * An Angular module that gives you access to the browsers local storage
+	 * @version v0.5.2 - 2016-09-28
+	 * @link https://github.com/grevory/angular-local-storage
+	 * @author grevory <greg@gregpike.ca>
+	 * @license MIT License, http://www.opensource.org/licenses/MIT
+	 */
+	(function (window, angular) {
+	var isDefined = angular.isDefined,
+	  isUndefined = angular.isUndefined,
+	  isNumber = angular.isNumber,
+	  isObject = angular.isObject,
+	  isArray = angular.isArray,
+	  isString = angular.isString,
+	  extend = angular.extend,
+	  toJson = angular.toJson;
+	
+	angular
+	  .module('LocalStorageModule', [])
+	  .provider('localStorageService', function() {
+	    // You should set a prefix to avoid overwriting any local storage variables from the rest of your app
+	    // e.g. localStorageServiceProvider.setPrefix('yourAppName');
+	    // With provider you can use config as this:
+	    // myApp.config(function (localStorageServiceProvider) {
+	    //    localStorageServiceProvider.prefix = 'yourAppName';
+	    // });
+	    this.prefix = 'ls';
+	
+	    // You could change web storage type localstorage or sessionStorage
+	    this.storageType = 'localStorage';
+	
+	    // Cookie options (usually in case of fallback)
+	    // expiry = Number of days before cookies expire // 0 = Does not expire
+	    // path = The web path the cookie represents
+	    // secure = Wether the cookies should be secure (i.e only sent on HTTPS requests)
+	    this.cookie = {
+	      expiry: 30,
+	      path: '/',
+	      secure: false
+	    };
+	
+	    // Decides wether we should default to cookies if localstorage is not supported.
+	    this.defaultToCookie = true;
+	
+	    // Send signals for each of the following actions?
+	    this.notify = {
+	      setItem: true,
+	      removeItem: false
+	    };
+	
+	    // Setter for the prefix
+	    this.setPrefix = function(prefix) {
+	      this.prefix = prefix;
+	      return this;
+	    };
+	
+	    // Setter for the storageType
+	    this.setStorageType = function(storageType) {
+	      this.storageType = storageType;
+	      return this;
+	    };
+	    // Setter for defaultToCookie value, default is true.
+	    this.setDefaultToCookie = function (shouldDefault) {
+	      this.defaultToCookie = !!shouldDefault; // Double-not to make sure it's a bool value.
+	      return this;
+	    };
+	    // Setter for cookie config
+	    this.setStorageCookie = function(exp, path, secure) {
+	      this.cookie.expiry = exp;
+	      this.cookie.path = path;
+	      this.cookie.secure = secure;
+	      return this;
+	    };
+	
+	    // Setter for cookie domain
+	    this.setStorageCookieDomain = function(domain) {
+	      this.cookie.domain = domain;
+	      return this;
+	    };
+	
+	    // Setter for notification config
+	    // itemSet & itemRemove should be booleans
+	    this.setNotify = function(itemSet, itemRemove) {
+	      this.notify = {
+	        setItem: itemSet,
+	        removeItem: itemRemove
+	      };
+	      return this;
+	    };
+	
+	    this.$get = ['$rootScope', '$window', '$document', '$parse','$timeout', function($rootScope, $window, $document, $parse, $timeout) {
+	      var self = this;
+	      var prefix = self.prefix;
+	      var cookie = self.cookie;
+	      var notify = self.notify;
+	      var storageType = self.storageType;
+	      var webStorage;
+	
+	      // When Angular's $document is not available
+	      if (!$document) {
+	        $document = document;
+	      } else if ($document[0]) {
+	        $document = $document[0];
+	      }
+	
+	      // If there is a prefix set in the config lets use that with an appended period for readability
+	      if (prefix.substr(-1) !== '.') {
+	        prefix = !!prefix ? prefix + '.' : '';
+	      }
+	      var deriveQualifiedKey = function(key) {
+	        return prefix + key;
+	      };
+	
+	      // Removes prefix from the key.
+	      var underiveQualifiedKey = function (key) {
+	        return key.replace(new RegExp('^' + prefix, 'g'), '');
+	      };
+	
+	      // Check if the key is within our prefix namespace.
+	      var isKeyPrefixOurs = function (key) {
+	        return key.indexOf(prefix) === 0;
+	      };
+	
+	      // Checks the browser to see if local storage is supported
+	      var checkSupport = function () {
+	        try {
+	          var supported = (storageType in $window && $window[storageType] !== null);
+	
+	          // When Safari (OS X or iOS) is in private browsing mode, it appears as though localStorage
+	          // is available, but trying to call .setItem throws an exception.
+	          //
+	          // "QUOTA_EXCEEDED_ERR: DOM Exception 22: An attempt was made to add something to storage
+	          // that exceeded the quota."
+	          var key = deriveQualifiedKey('__' + Math.round(Math.random() * 1e7));
+	          if (supported) {
+	            webStorage = $window[storageType];
+	            webStorage.setItem(key, '');
+	            webStorage.removeItem(key);
+	          }
+	
+	          return supported;
+	        } catch (e) {
+	          // Only change storageType to cookies if defaulting is enabled.
+	          if (self.defaultToCookie)
+	            storageType = 'cookie';
+	          $rootScope.$broadcast('LocalStorageModule.notification.error', e.message);
+	          return false;
+	        }
+	      };
+	      var browserSupportsLocalStorage = checkSupport();
+	
+	      // Directly adds a value to local storage
+	      // If local storage is not available in the browser use cookies
+	      // Example use: localStorageService.add('library','angular');
+	      var addToLocalStorage = function (key, value, type) {
+	        setStorageType(type);
+	
+	        // Let's convert undefined values to null to get the value consistent
+	        if (isUndefined(value)) {
+	          value = null;
+	        } else {
+	          value = toJson(value);
+	        }
+	
+	        // If this browser does not support local storage use cookies
+	        if (!browserSupportsLocalStorage && self.defaultToCookie || self.storageType === 'cookie') {
+	          if (!browserSupportsLocalStorage) {
+	            $rootScope.$broadcast('LocalStorageModule.notification.warning', 'LOCAL_STORAGE_NOT_SUPPORTED');
+	          }
+	
+	          if (notify.setItem) {
+	            $rootScope.$broadcast('LocalStorageModule.notification.setitem', {key: key, newvalue: value, storageType: 'cookie'});
+	          }
+	          return addToCookies(key, value);
+	        }
+	
+	        try {
+	          if (webStorage) {
+	            webStorage.setItem(deriveQualifiedKey(key), value);
+	          }
+	          if (notify.setItem) {
+	            $rootScope.$broadcast('LocalStorageModule.notification.setitem', {key: key, newvalue: value, storageType: self.storageType});
+	          }
+	        } catch (e) {
+	          $rootScope.$broadcast('LocalStorageModule.notification.error', e.message);
+	          return addToCookies(key, value);
+	        }
+	        return true;
+	      };
+	
+	      // Directly get a value from local storage
+	      // Example use: localStorageService.get('library'); // returns 'angular'
+	      var getFromLocalStorage = function (key, type) {
+	        setStorageType(type);
+	
+	        if (!browserSupportsLocalStorage && self.defaultToCookie  || self.storageType === 'cookie') {
+	          if (!browserSupportsLocalStorage) {
+	            $rootScope.$broadcast('LocalStorageModule.notification.warning', 'LOCAL_STORAGE_NOT_SUPPORTED');
+	          }
+	
+	          return getFromCookies(key);
+	        }
+	
+	        var item = webStorage ? webStorage.getItem(deriveQualifiedKey(key)) : null;
+	        // angular.toJson will convert null to 'null', so a proper conversion is needed
+	        // FIXME not a perfect solution, since a valid 'null' string can't be stored
+	        if (!item || item === 'null') {
+	          return null;
+	        }
+	
+	        try {
+	          return JSON.parse(item);
+	        } catch (e) {
+	          return item;
+	        }
+	      };
+	
+	      // Remove an item from local storage
+	      // Example use: localStorageService.remove('library'); // removes the key/value pair of library='angular'
+	      //
+	      // This is var-arg removal, check the last argument to see if it is a storageType
+	      // and set type accordingly before removing.
+	      //
+	      var removeFromLocalStorage = function () {
+	        // can't pop on arguments, so we do this
+	        var consumed = 0;
+	        if (arguments.length >= 1 &&
+	            (arguments[arguments.length - 1] === 'localStorage' ||
+	             arguments[arguments.length - 1] === 'sessionStorage')) {
+	          consumed = 1;
+	          setStorageType(arguments[arguments.length - 1]);
+	        }
+	
+	        var i, key;
+	        for (i = 0; i < arguments.length - consumed; i++) {
+	          key = arguments[i];
+	          if (!browserSupportsLocalStorage && self.defaultToCookie || self.storageType === 'cookie') {
+	            if (!browserSupportsLocalStorage) {
+	              $rootScope.$broadcast('LocalStorageModule.notification.warning', 'LOCAL_STORAGE_NOT_SUPPORTED');
+	            }
+	
+	            if (notify.removeItem) {
+	              $rootScope.$broadcast('LocalStorageModule.notification.removeitem', {key: key, storageType: 'cookie'});
+	            }
+	            removeFromCookies(key);
+	          }
+	          else {
+	            try {
+	              webStorage.removeItem(deriveQualifiedKey(key));
+	              if (notify.removeItem) {
+	                $rootScope.$broadcast('LocalStorageModule.notification.removeitem', {
+	                  key: key,
+	                  storageType: self.storageType
+	                });
+	              }
+	            } catch (e) {
+	              $rootScope.$broadcast('LocalStorageModule.notification.error', e.message);
+	              removeFromCookies(key);
+	            }
+	          }
+	        }
+	      };
+	
+	      // Return array of keys for local storage
+	      // Example use: var keys = localStorageService.keys()
+	      var getKeysForLocalStorage = function (type) {
+	        setStorageType(type);
+	
+	        if (!browserSupportsLocalStorage) {
+	          $rootScope.$broadcast('LocalStorageModule.notification.warning', 'LOCAL_STORAGE_NOT_SUPPORTED');
+	          return [];
+	        }
+	
+	        var prefixLength = prefix.length;
+	        var keys = [];
+	        for (var key in webStorage) {
+	          // Only return keys that are for this app
+	          if (key.substr(0, prefixLength) === prefix) {
+	            try {
+	              keys.push(key.substr(prefixLength));
+	            } catch (e) {
+	              $rootScope.$broadcast('LocalStorageModule.notification.error', e.Description);
+	              return [];
+	            }
+	          }
+	        }
+	        return keys;
+	      };
+	
+	      // Remove all data for this app from local storage
+	      // Also optionally takes a regular expression string and removes the matching key-value pairs
+	      // Example use: localStorageService.clearAll();
+	      // Should be used mostly for development purposes
+	      var clearAllFromLocalStorage = function (regularExpression, type) {
+	        setStorageType(type);
+	
+	        // Setting both regular expressions independently
+	        // Empty strings result in catchall RegExp
+	        var prefixRegex = !!prefix ? new RegExp('^' + prefix) : new RegExp();
+	        var testRegex = !!regularExpression ? new RegExp(regularExpression) : new RegExp();
+	
+	        if (!browserSupportsLocalStorage && self.defaultToCookie  || self.storageType === 'cookie') {
+	          if (!browserSupportsLocalStorage) {
+	            $rootScope.$broadcast('LocalStorageModule.notification.warning', 'LOCAL_STORAGE_NOT_SUPPORTED');
+	          }
+	          return clearAllFromCookies();
+	        }
+	        if (!browserSupportsLocalStorage && !self.defaultToCookie)
+	          return false;
+	        var prefixLength = prefix.length;
+	
+	        for (var key in webStorage) {
+	          // Only remove items that are for this app and match the regular expression
+	          if (prefixRegex.test(key) && testRegex.test(key.substr(prefixLength))) {
+	            try {
+	              removeFromLocalStorage(key.substr(prefixLength));
+	            } catch (e) {
+	              $rootScope.$broadcast('LocalStorageModule.notification.error', e.message);
+	              return clearAllFromCookies();
+	            }
+	          }
+	        }
+	        return true;
+	      };
+	
+	      // Checks the browser to see if cookies are supported
+	      var browserSupportsCookies = (function() {
+	        try {
+	          return $window.navigator.cookieEnabled ||
+	          ("cookie" in $document && ($document.cookie.length > 0 ||
+	            ($document.cookie = "test").indexOf.call($document.cookie, "test") > -1));
+	          } catch (e) {
+	            $rootScope.$broadcast('LocalStorageModule.notification.error', e.message);
+	            return false;
+	          }
+	        }());
+	
+	        // Directly adds a value to cookies
+	        // Typically used as a fallback if local storage is not available in the browser
+	        // Example use: localStorageService.cookie.add('library','angular');
+	        var addToCookies = function (key, value, daysToExpiry, secure) {
+	
+	          if (isUndefined(value)) {
+	            return false;
+	          } else if(isArray(value) || isObject(value)) {
+	            value = toJson(value);
+	          }
+	
+	          if (!browserSupportsCookies) {
+	            $rootScope.$broadcast('LocalStorageModule.notification.error', 'COOKIES_NOT_SUPPORTED');
+	            return false;
+	          }
+	
+	          try {
+	            var expiry = '',
+	            expiryDate = new Date(),
+	            cookieDomain = '';
+	
+	            if (value === null) {
+	              // Mark that the cookie has expired one day ago
+	              expiryDate.setTime(expiryDate.getTime() + (-1 * 24 * 60 * 60 * 1000));
+	              expiry = "; expires=" + expiryDate.toGMTString();
+	              value = '';
+	            } else if (isNumber(daysToExpiry) && daysToExpiry !== 0) {
+	              expiryDate.setTime(expiryDate.getTime() + (daysToExpiry * 24 * 60 * 60 * 1000));
+	              expiry = "; expires=" + expiryDate.toGMTString();
+	            } else if (cookie.expiry !== 0) {
+	              expiryDate.setTime(expiryDate.getTime() + (cookie.expiry * 24 * 60 * 60 * 1000));
+	              expiry = "; expires=" + expiryDate.toGMTString();
+	            }
+	            if (!!key) {
+	              var cookiePath = "; path=" + cookie.path;
+	              if (cookie.domain) {
+	                cookieDomain = "; domain=" + cookie.domain;
+	              }
+	              /* Providing the secure parameter always takes precedence over config
+	               * (allows developer to mix and match secure + non-secure) */
+	              if (typeof secure === 'boolean') {
+	                  if (secure === true) {
+	                      /* We've explicitly specified secure,
+	                       * add the secure attribute to the cookie (after domain) */
+	                      cookieDomain += "; secure";
+	                  }
+	                  // else - secure has been supplied but isn't true - so don't set secure flag, regardless of what config says
+	              }
+	              else if (cookie.secure === true) {
+	                  // secure parameter wasn't specified, get default from config
+	                  cookieDomain += "; secure";
+	              }
+	              $document.cookie = deriveQualifiedKey(key) + "=" + encodeURIComponent(value) + expiry + cookiePath + cookieDomain;
+	            }
+	          } catch (e) {
+	            $rootScope.$broadcast('LocalStorageModule.notification.error', e.message);
+	            return false;
+	          }
+	          return true;
+	        };
+	
+	        // Directly get a value from a cookie
+	        // Example use: localStorageService.cookie.get('library'); // returns 'angular'
+	        var getFromCookies = function (key) {
+	          if (!browserSupportsCookies) {
+	            $rootScope.$broadcast('LocalStorageModule.notification.error', 'COOKIES_NOT_SUPPORTED');
+	            return false;
+	          }
+	
+	          var cookies = $document.cookie && $document.cookie.split(';') || [];
+	          for(var i=0; i < cookies.length; i++) {
+	            var thisCookie = cookies[i];
+	            while (thisCookie.charAt(0) === ' ') {
+	              thisCookie = thisCookie.substring(1,thisCookie.length);
+	            }
+	            if (thisCookie.indexOf(deriveQualifiedKey(key) + '=') === 0) {
+	              var storedValues = decodeURIComponent(thisCookie.substring(prefix.length + key.length + 1, thisCookie.length));
+	              try {
+	                var parsedValue = JSON.parse(storedValues);
+	                return typeof(parsedValue) === 'number' ? storedValues : parsedValue;
+	              } catch(e) {
+	                return storedValues;
+	              }
+	            }
+	          }
+	          return null;
+	        };
+	
+	        var removeFromCookies = function (key) {
+	          addToCookies(key,null);
+	        };
+	
+	        var clearAllFromCookies = function () {
+	          var thisCookie = null;
+	          var prefixLength = prefix.length;
+	          var cookies = $document.cookie.split(';');
+	          for(var i = 0; i < cookies.length; i++) {
+	            thisCookie = cookies[i];
+	
+	            while (thisCookie.charAt(0) === ' ') {
+	              thisCookie = thisCookie.substring(1, thisCookie.length);
+	            }
+	
+	            var key = thisCookie.substring(prefixLength, thisCookie.indexOf('='));
+	            removeFromCookies(key);
+	          }
+	        };
+	
+	        var getStorageType = function() {
+	          return storageType;
+	        };
+	
+	        var setStorageType = function(type) {
+	          if (type && storageType !== type) {
+	            storageType = type;
+	            browserSupportsLocalStorage = checkSupport();
+	          }
+	          return browserSupportsLocalStorage;
+	        };
+	
+	        // Add a listener on scope variable to save its changes to local storage
+	        // Return a function which when called cancels binding
+	        var bindToScope = function(scope, key, def, lsKey, type) {
+	          lsKey = lsKey || key;
+	          var value = getFromLocalStorage(lsKey, type);
+	
+	          if (value === null && isDefined(def)) {
+	            value = def;
+	          } else if (isObject(value) && isObject(def)) {
+	            value = extend(value, def);
+	          }
+	
+	          $parse(key).assign(scope, value);
+	
+	          return scope.$watch(key, function(newVal) {
+	            addToLocalStorage(lsKey, newVal, type);
+	          }, isObject(scope[key]));
+	        };
+	
+	        // Add listener to local storage, for update callbacks.
+	        if (browserSupportsLocalStorage) {
+	            if ($window.addEventListener) {
+	                $window.addEventListener("storage", handleStorageChangeCallback, false);
+	                $rootScope.$on('$destroy', function() {
+	                    $window.removeEventListener("storage", handleStorageChangeCallback);
+	                });
+	            } else if($window.attachEvent){
+	                // attachEvent and detachEvent are proprietary to IE v6-10
+	                $window.attachEvent("onstorage", handleStorageChangeCallback);
+	                $rootScope.$on('$destroy', function() {
+	                    $window.detachEvent("onstorage", handleStorageChangeCallback);
+	                });
+	            }
+	        }
+	
+	        // Callback handler for storage changed.
+	        function handleStorageChangeCallback(e) {
+	            if (!e) { e = $window.event; }
+	            if (notify.setItem) {
+	                if (isString(e.key) && isKeyPrefixOurs(e.key)) {
+	                    var key = underiveQualifiedKey(e.key);
+	                    // Use timeout, to avoid using $rootScope.$apply.
+	                    $timeout(function () {
+	                        $rootScope.$broadcast('LocalStorageModule.notification.changed', { key: key, newvalue: e.newValue, storageType: self.storageType });
+	                    });
+	                }
+	            }
+	        }
+	
+	        // Return localStorageService.length
+	        // ignore keys that not owned
+	        var lengthOfLocalStorage = function(type) {
+	          setStorageType(type);
+	
+	          var count = 0;
+	          var storage = $window[storageType];
+	          for(var i = 0; i < storage.length; i++) {
+	            if(storage.key(i).indexOf(prefix) === 0 ) {
+	              count++;
+	            }
+	          }
+	          return count;
+	        };
+	
+	        return {
+	          isSupported: browserSupportsLocalStorage,
+	          getStorageType: getStorageType,
+	          setStorageType: setStorageType,
+	          set: addToLocalStorage,
+	          add: addToLocalStorage, //DEPRECATED
+	          get: getFromLocalStorage,
+	          keys: getKeysForLocalStorage,
+	          remove: removeFromLocalStorage,
+	          clearAll: clearAllFromLocalStorage,
+	          bind: bindToScope,
+	          deriveKey: deriveQualifiedKey,
+	          underiveKey: underiveQualifiedKey,
+	          length: lengthOfLocalStorage,
+	          defaultToCookie: this.defaultToCookie,
+	          cookie: {
+	            isSupported: browserSupportsCookies,
+	            set: addToCookies,
+	            add: addToCookies, //DEPRECATED
+	            get: getFromCookies,
+	            remove: removeFromCookies,
+	            clearAll: clearAllFromCookies
+	          }
+	        };
+	      }];
+	  });
+	})(window, window.angular);
+
+/***/ }),
+/* 8 */
 /***/ (function(module, exports) {
 
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+		value: true
 	});
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -34763,34 +35326,110 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var PizzaService = exports.PizzaService = function () {
-	    function PizzaService($http, localStorageService, $q, API_URL) {
-	        _classCallCheck(this, PizzaService);
+		function PizzaService($http, localStorageService, $q, API_URL) {
+			_classCallCheck(this, PizzaService);
 	
-	        this.localStorageService = localStorageService;
-	        this.$http = $http;
-	        this.$q = $q;
-	        this.API_URL = API_URL;
-	    }
+			this.localStorageService = localStorageService;
+			this.$http = $http;
+			this.$q = $q;
+			this.API_URL = API_URL;
+		}
 	
-	    _createClass(PizzaService, [{
-	        key: 'getPizzas',
-	        value: function getPizzas() {
-	            var _this = this;
+		_createClass(PizzaService, [{
+			key: 'getPizzas',
+			value: function getPizzas() {
+				var _this = this;
 	
-	            if (!this.localStorageService.get('pizzas')) {
-	                this.$http.get(this.API_URL + '/pizzas').then(function (r) {
-	                    return _this.localStorageService.set('pizzas', r.data);
-	                });
-	            }
-	            return this.$q.resolve(this.localStorageService.get('pizzas'));
-	        }
-	    }]);
+				if (!this.localStorageService.get('pizzas')) {
+					this.$http.get(this.API_URL + '/pizzas').then(function (r) {
+						return _this.localStorageService.set('pizzas', r.data, 'localStorage');
+					});
+				}
+				return this.$q.resolve(this.localStorageService.get('pizzas', 'localStorage'));
+			}
+		}]);
 
-	    return PizzaService;
+		return PizzaService;
 	}();
 
 /***/ }),
-/* 7 */
+/* 9 */
+/***/ (function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var CommandeService = exports.CommandeService = function () {
+		function CommandeService($http, API_URL, localStorageService, ClientService, $q) {
+			_classCallCheck(this, CommandeService);
+	
+			this.localStorageService = localStorageService;
+			this.ClientService = ClientService;
+			this.$http = $http;
+			this.$q = $q;
+			this.API_URL = API_URL;
+		}
+	
+		_createClass(CommandeService, [{
+			key: 'getCommandes',
+			value: function getCommandes() {
+				return this.$http.get(this.API_URL + '/commandes').then(function (r) {
+					return r.data;
+				});
+			}
+		}, {
+			key: 'setCommande',
+			value: function setCommande(type) {
+				var _this = this;
+	
+				this.ClientService.getClient(this.localStorageService.get('utilisateur', 'sessionStorage')).then(function (utilisateur) {
+					var pizzas = _this.localStorageService.get('pizzas', 'localStorage');
+					var panier = _this.localStorageService.get('panier', 'localStorage');
+	
+					if (utilisateur !== '') {
+	
+						var commandeComplete = {
+							'commande': {
+								'type': type,
+								'client': utilisateur
+							},
+							'commandesPizza': []
+						};
+	
+						panier.forEach(function (pizza) {
+							commandeComplete.commandesPizza.push({
+								'quantite': pizza.quantite,
+								'id': {
+									'pizza': pizza,
+									'commande': commandeComplete.commande
+								}
+							});
+						});
+						_this.localStorageService.removeItem("panier");
+	
+						console.log(commandeComplete);
+						_this.$http.post(_this.API_URL + '/commandes', commandeComplete).then(function (r) {
+							return r.data;
+						});
+					} else {
+						alert('Vous avez été deconnecté pour une raison mystérieuse. Veuillez vous reloguer');
+					}
+				});
+			}
+		}]);
+
+		return CommandeService;
+	}();
+
+/***/ }),
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -34802,7 +35441,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _jsSha = __webpack_require__(8);
+	var _jsSha = __webpack_require__(11);
 	
 	var _jsSha2 = _interopRequireDefault(_jsSha);
 	
@@ -34864,7 +35503,7 @@
 	}();
 
 /***/ }),
-/* 8 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(process, global) {/**
@@ -34885,7 +35524,7 @@
 	    root = global;
 	  }
 	  var COMMON_JS = !root.JS_SHA256_NO_COMMON_JS && typeof module === 'object' && module.exports;
-	  var AMD = "function" === 'function' && __webpack_require__(10);
+	  var AMD = "function" === 'function' && __webpack_require__(13);
 	  var ARRAY_BUFFER = typeof ArrayBuffer !== 'undefined';
 	  var HEX_CHARS = '0123456789abcdef'.split('');
 	  var EXTRA = [-2147483648, 8388608, 32768, 128];
@@ -34929,8 +35568,8 @@
 	  };
 	
 	  var nodeWrap = function (method, is224) {
-	    var crypto = __webpack_require__(11);
-	    var Buffer = __webpack_require__(12).Buffer;
+	    var crypto = __webpack_require__(14);
+	    var Buffer = __webpack_require__(15).Buffer;
 	    var algorithm = is224 ? 'sha224' : 'sha256';
 	    var nodeMethod = function (message) {
 	      if (typeof message === 'string') {
@@ -35246,10 +35885,10 @@
 	  }
 	})();
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9), (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12), (function() { return this; }())))
 
 /***/ }),
-/* 9 */
+/* 12 */
 /***/ (function(module, exports) {
 
 	// shim for using process in browser
@@ -35439,7 +36078,7 @@
 
 
 /***/ }),
-/* 10 */
+/* 13 */
 /***/ (function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -35447,10 +36086,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ }),
-/* 11 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var rng = __webpack_require__(16)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var rng = __webpack_require__(19)
 	
 	function error () {
 	  var m = [].slice.call(arguments).join(' ')
@@ -35461,9 +36100,9 @@
 	    ].join('\n'))
 	}
 	
-	exports.createHash = __webpack_require__(18)
+	exports.createHash = __webpack_require__(21)
 	
-	exports.createHmac = __webpack_require__(30)
+	exports.createHmac = __webpack_require__(33)
 	
 	exports.randomBytes = function(size, callback) {
 	  if (callback && callback.call) {
@@ -35484,10 +36123,10 @@
 	  return ['sha1', 'sha256', 'sha512', 'md5', 'rmd160']
 	}
 	
-	var p = __webpack_require__(31)(exports)
+	var p = __webpack_require__(34)(exports)
 	exports.pbkdf2 = p.pbkdf2
 	exports.pbkdf2Sync = p.pbkdf2Sync
-	__webpack_require__(33)(exports, module.exports);
+	__webpack_require__(36)(exports, module.exports);
 	
 	// the least I can do is make error messages for the rest of the node.js/crypto api.
 	each(['createCredentials'
@@ -35500,10 +36139,10 @@
 	  }
 	})
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 12 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/*!
@@ -35516,9 +36155,9 @@
 	
 	'use strict'
 	
-	var base64 = __webpack_require__(13)
-	var ieee754 = __webpack_require__(14)
-	var isArray = __webpack_require__(15)
+	var base64 = __webpack_require__(16)
+	var ieee754 = __webpack_require__(17)
+	var isArray = __webpack_require__(18)
 	
 	exports.Buffer = Buffer
 	exports.SlowBuffer = SlowBuffer
@@ -37299,7 +37938,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
-/* 13 */
+/* 16 */
 /***/ (function(module, exports) {
 
 	'use strict'
@@ -37419,7 +38058,7 @@
 
 
 /***/ }),
-/* 14 */
+/* 17 */
 /***/ (function(module, exports) {
 
 	exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -37509,7 +38148,7 @@
 
 
 /***/ }),
-/* 15 */
+/* 18 */
 /***/ (function(module, exports) {
 
 	var toString = {}.toString;
@@ -37520,13 +38159,13 @@
 
 
 /***/ }),
-/* 16 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, Buffer) {(function() {
 	  var g = ('undefined' === typeof window ? global : window) || {}
 	  _crypto = (
-	    g.crypto || g.msCrypto || __webpack_require__(17)
+	    g.crypto || g.msCrypto || __webpack_require__(20)
 	  )
 	  module.exports = function(size) {
 	    // Modern Browsers
@@ -37550,22 +38189,22 @@
 	  }
 	}())
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 17 */
+/* 20 */
 /***/ (function(module, exports) {
 
 	/* (ignored) */
 
 /***/ }),
-/* 18 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(19)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(22)
 	
-	var md5 = toConstructor(__webpack_require__(27))
-	var rmd160 = toConstructor(__webpack_require__(29))
+	var md5 = toConstructor(__webpack_require__(30))
+	var rmd160 = toConstructor(__webpack_require__(32))
 	
 	function toConstructor (fn) {
 	  return function () {
@@ -37593,10 +38232,10 @@
 	  return createHash(alg)
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 19 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var exports = module.exports = function (alg) {
@@ -37605,16 +38244,16 @@
 	  return new Alg()
 	}
 	
-	var Buffer = __webpack_require__(12).Buffer
-	var Hash   = __webpack_require__(20)(Buffer)
+	var Buffer = __webpack_require__(15).Buffer
+	var Hash   = __webpack_require__(23)(Buffer)
 	
-	exports.sha1 = __webpack_require__(21)(Buffer, Hash)
-	exports.sha256 = __webpack_require__(25)(Buffer, Hash)
-	exports.sha512 = __webpack_require__(26)(Buffer, Hash)
+	exports.sha1 = __webpack_require__(24)(Buffer, Hash)
+	exports.sha256 = __webpack_require__(28)(Buffer, Hash)
+	exports.sha512 = __webpack_require__(29)(Buffer, Hash)
 
 
 /***/ }),
-/* 20 */
+/* 23 */
 /***/ (function(module, exports) {
 
 	module.exports = function (Buffer) {
@@ -37697,7 +38336,7 @@
 
 
 /***/ }),
-/* 21 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*
@@ -37709,7 +38348,7 @@
 	 * See http://pajhome.org.uk/crypt/md5 for details.
 	 */
 	
-	var inherits = __webpack_require__(22).inherits
+	var inherits = __webpack_require__(25).inherits
 	
 	module.exports = function (Buffer, Hash) {
 	
@@ -37841,7 +38480,7 @@
 
 
 /***/ }),
-/* 22 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -38369,7 +39008,7 @@
 	}
 	exports.isPrimitive = isPrimitive;
 	
-	exports.isBuffer = __webpack_require__(23);
+	exports.isBuffer = __webpack_require__(26);
 	
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
@@ -38413,7 +39052,7 @@
 	 *     prototype.
 	 * @param {function} superCtor Constructor function to inherit prototype from.
 	 */
-	exports.inherits = __webpack_require__(24);
+	exports.inherits = __webpack_require__(27);
 	
 	exports._extend = function(origin, add) {
 	  // Don't do anything if add isn't an object
@@ -38431,10 +39070,10 @@
 	  return Object.prototype.hasOwnProperty.call(obj, prop);
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(9)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(12)))
 
 /***/ }),
-/* 23 */
+/* 26 */
 /***/ (function(module, exports) {
 
 	module.exports = function isBuffer(arg) {
@@ -38445,7 +39084,7 @@
 	}
 
 /***/ }),
-/* 24 */
+/* 27 */
 /***/ (function(module, exports) {
 
 	if (typeof Object.create === 'function') {
@@ -38474,7 +39113,7 @@
 
 
 /***/ }),
-/* 25 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	
@@ -38486,7 +39125,7 @@
 	 *
 	 */
 	
-	var inherits = __webpack_require__(22).inherits
+	var inherits = __webpack_require__(25).inherits
 	
 	module.exports = function (Buffer, Hash) {
 	
@@ -38627,10 +39266,10 @@
 
 
 /***/ }),
-/* 26 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var inherits = __webpack_require__(22).inherits
+	var inherits = __webpack_require__(25).inherits
 	
 	module.exports = function (Buffer, Hash) {
 	  var K = [
@@ -38877,7 +39516,7 @@
 
 
 /***/ }),
-/* 27 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/*
@@ -38889,7 +39528,7 @@
 	 * See http://pajhome.org.uk/crypt/md5 for more info.
 	 */
 	
-	var helpers = __webpack_require__(28);
+	var helpers = __webpack_require__(31);
 	
 	/*
 	 * Calculate the MD5 of an array of little-endian words, and a bit length
@@ -39038,7 +39677,7 @@
 
 
 /***/ }),
-/* 28 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {var intSize = 4;
@@ -39076,10 +39715,10 @@
 	
 	module.exports = { hash: hash };
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 29 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {
@@ -39288,13 +39927,13 @@
 	
 	
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 30 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(18)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(21)
 	
 	var zeroBuffer = new Buffer(128)
 	zeroBuffer.fill(0)
@@ -39338,13 +39977,13 @@
 	}
 	
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 31 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var pbkdf2Export = __webpack_require__(32)
+	var pbkdf2Export = __webpack_require__(35)
 	
 	module.exports = function (crypto, exports) {
 	  exports = exports || {}
@@ -39359,7 +39998,7 @@
 
 
 /***/ }),
-/* 32 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {module.exports = function(crypto) {
@@ -39447,21 +40086,21 @@
 	  }
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 33 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	module.exports = function (crypto, exports) {
 	  exports = exports || {};
-	  var ciphers = __webpack_require__(34)(crypto);
+	  var ciphers = __webpack_require__(37)(crypto);
 	  exports.createCipher = ciphers.createCipher;
 	  exports.createCipheriv = ciphers.createCipheriv;
-	  var deciphers = __webpack_require__(69)(crypto);
+	  var deciphers = __webpack_require__(72)(crypto);
 	  exports.createDecipher = deciphers.createDecipher;
 	  exports.createDecipheriv = deciphers.createDecipheriv;
-	  var modes = __webpack_require__(60);
+	  var modes = __webpack_require__(63);
 	  function listCiphers () {
 	    return Object.keys(modes);
 	  }
@@ -39471,15 +40110,15 @@
 
 
 /***/ }),
-/* 34 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(35);
-	var Transform = __webpack_require__(36);
-	var inherits = __webpack_require__(39);
-	var modes = __webpack_require__(60);
-	var ebtk = __webpack_require__(61);
-	var StreamCipher = __webpack_require__(62);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(38);
+	var Transform = __webpack_require__(39);
+	var inherits = __webpack_require__(42);
+	var modes = __webpack_require__(63);
+	var ebtk = __webpack_require__(64);
+	var StreamCipher = __webpack_require__(65);
 	inherits(Cipher, Transform);
 	function Cipher(mode, key, iv) {
 	  if (!(this instanceof Cipher)) {
@@ -39540,11 +40179,11 @@
 	  return out;
 	};
 	var modelist = {
-	  ECB: __webpack_require__(63),
-	  CBC: __webpack_require__(64),
-	  CFB: __webpack_require__(66),
-	  OFB: __webpack_require__(67),
-	  CTR: __webpack_require__(68)
+	  ECB: __webpack_require__(66),
+	  CBC: __webpack_require__(67),
+	  CFB: __webpack_require__(69),
+	  OFB: __webpack_require__(70),
+	  CTR: __webpack_require__(71)
 	};
 	module.exports = function (crypto) {
 	  function createCipheriv(suite, password, iv) {
@@ -39583,10 +40222,10 @@
 	  };
 	};
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 35 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {var uint_max = Math.pow(2, 32);
@@ -39785,14 +40424,14 @@
 	
 	
 	  exports.AES = AES;
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 36 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var Transform = __webpack_require__(37).Transform;
-	var inherits = __webpack_require__(39);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var Transform = __webpack_require__(40).Transform;
+	var inherits = __webpack_require__(42);
 	
 	module.exports = CipherBase;
 	inherits(CipherBase, Transform);
@@ -39823,10 +40462,10 @@
 	  }
 	  return outData;
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 37 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -39852,15 +40491,15 @@
 	
 	module.exports = Stream;
 	
-	var EE = __webpack_require__(38).EventEmitter;
-	var inherits = __webpack_require__(39);
+	var EE = __webpack_require__(41).EventEmitter;
+	var inherits = __webpack_require__(42);
 	
 	inherits(Stream, EE);
-	Stream.Readable = __webpack_require__(40);
-	Stream.Writable = __webpack_require__(56);
-	Stream.Duplex = __webpack_require__(57);
-	Stream.Transform = __webpack_require__(58);
-	Stream.PassThrough = __webpack_require__(59);
+	Stream.Readable = __webpack_require__(43);
+	Stream.Writable = __webpack_require__(59);
+	Stream.Duplex = __webpack_require__(60);
+	Stream.Transform = __webpack_require__(61);
+	Stream.PassThrough = __webpack_require__(62);
 	
 	// Backwards-compat with node 0.4.x
 	Stream.Stream = Stream;
@@ -39959,7 +40598,7 @@
 
 
 /***/ }),
-/* 38 */
+/* 41 */
 /***/ (function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -40267,7 +40906,7 @@
 
 
 /***/ }),
-/* 39 */
+/* 42 */
 /***/ (function(module, exports) {
 
 	if (typeof Object.create === 'function') {
@@ -40296,20 +40935,20 @@
 
 
 /***/ }),
-/* 40 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(41);
+	exports = module.exports = __webpack_require__(44);
 	exports.Stream = exports;
 	exports.Readable = exports;
-	exports.Writable = __webpack_require__(49);
-	exports.Duplex = __webpack_require__(48);
-	exports.Transform = __webpack_require__(54);
-	exports.PassThrough = __webpack_require__(55);
+	exports.Writable = __webpack_require__(52);
+	exports.Duplex = __webpack_require__(51);
+	exports.Transform = __webpack_require__(57);
+	exports.PassThrough = __webpack_require__(58);
 
 
 /***/ }),
-/* 41 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -40317,11 +40956,11 @@
 	module.exports = Readable;
 	
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(42);
+	var processNextTick = __webpack_require__(45);
 	/*</replacement>*/
 	
 	/*<replacement>*/
-	var isArray = __webpack_require__(15);
+	var isArray = __webpack_require__(18);
 	/*</replacement>*/
 	
 	/*<replacement>*/
@@ -40331,7 +40970,7 @@
 	Readable.ReadableState = ReadableState;
 	
 	/*<replacement>*/
-	var EE = __webpack_require__(38).EventEmitter;
+	var EE = __webpack_require__(41).EventEmitter;
 	
 	var EElistenerCount = function (emitter, type) {
 	  return emitter.listeners(type).length;
@@ -40339,21 +40978,21 @@
 	/*</replacement>*/
 	
 	/*<replacement>*/
-	var Stream = __webpack_require__(43);
+	var Stream = __webpack_require__(46);
 	/*</replacement>*/
 	
-	var Buffer = __webpack_require__(12).Buffer;
+	var Buffer = __webpack_require__(15).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(44);
-	/*</replacement>*/
-	
-	/*<replacement>*/
-	var util = __webpack_require__(45);
-	util.inherits = __webpack_require__(39);
+	var bufferShim = __webpack_require__(47);
 	/*</replacement>*/
 	
 	/*<replacement>*/
-	var debugUtil = __webpack_require__(46);
+	var util = __webpack_require__(48);
+	util.inherits = __webpack_require__(42);
+	/*</replacement>*/
+	
+	/*<replacement>*/
+	var debugUtil = __webpack_require__(49);
 	var debug = void 0;
 	if (debugUtil && debugUtil.debuglog) {
 	  debug = debugUtil.debuglog('stream');
@@ -40362,7 +41001,7 @@
 	}
 	/*</replacement>*/
 	
-	var BufferList = __webpack_require__(47);
+	var BufferList = __webpack_require__(50);
 	var StringDecoder;
 	
 	util.inherits(Readable, Stream);
@@ -40384,7 +41023,7 @@
 	}
 	
 	function ReadableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(48);
+	  Duplex = Duplex || __webpack_require__(51);
 	
 	  options = options || {};
 	
@@ -40446,14 +41085,14 @@
 	  this.decoder = null;
 	  this.encoding = null;
 	  if (options.encoding) {
-	    if (!StringDecoder) StringDecoder = __webpack_require__(53).StringDecoder;
+	    if (!StringDecoder) StringDecoder = __webpack_require__(56).StringDecoder;
 	    this.decoder = new StringDecoder(options.encoding);
 	    this.encoding = options.encoding;
 	  }
 	}
 	
 	function Readable(options) {
-	  Duplex = Duplex || __webpack_require__(48);
+	  Duplex = Duplex || __webpack_require__(51);
 	
 	  if (!(this instanceof Readable)) return new Readable(options);
 	
@@ -40556,7 +41195,7 @@
 	
 	// backwards compatibility.
 	Readable.prototype.setEncoding = function (enc) {
-	  if (!StringDecoder) StringDecoder = __webpack_require__(53).StringDecoder;
+	  if (!StringDecoder) StringDecoder = __webpack_require__(56).StringDecoder;
 	  this._readableState.decoder = new StringDecoder(enc);
 	  this._readableState.encoding = enc;
 	  return this;
@@ -41247,10 +41886,10 @@
 	  }
 	  return -1;
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
 /***/ }),
-/* 42 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -41297,22 +41936,22 @@
 	  }
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
 
 /***/ }),
-/* 43 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(38).EventEmitter;
+	module.exports = __webpack_require__(41).EventEmitter;
 
 
 /***/ }),
-/* 44 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
 	
-	var buffer = __webpack_require__(12);
+	var buffer = __webpack_require__(15);
 	var Buffer = buffer.Buffer;
 	var SlowBuffer = buffer.SlowBuffer;
 	var MAX_LEN = buffer.kMaxLength || 2147483647;
@@ -41422,7 +42061,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
-/* 45 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {// Copyright Joyent, Inc. and other Node contributors.
@@ -41533,23 +42172,23 @@
 	  return Object.prototype.toString.call(o);
 	}
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 46 */
+/* 49 */
 /***/ (function(module, exports) {
 
 	/* (ignored) */
 
 /***/ }),
-/* 47 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var Buffer = __webpack_require__(12).Buffer;
+	var Buffer = __webpack_require__(15).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(44);
+	var bufferShim = __webpack_require__(47);
 	/*</replacement>*/
 	
 	module.exports = BufferList;
@@ -41611,7 +42250,7 @@
 	};
 
 /***/ }),
-/* 48 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// a duplex stream is just a stream that is both readable and writable.
@@ -41634,16 +42273,16 @@
 	module.exports = Duplex;
 	
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(42);
+	var processNextTick = __webpack_require__(45);
 	/*</replacement>*/
 	
 	/*<replacement>*/
-	var util = __webpack_require__(45);
-	util.inherits = __webpack_require__(39);
+	var util = __webpack_require__(48);
+	util.inherits = __webpack_require__(42);
 	/*</replacement>*/
 	
-	var Readable = __webpack_require__(41);
-	var Writable = __webpack_require__(49);
+	var Readable = __webpack_require__(44);
+	var Writable = __webpack_require__(52);
 	
 	util.inherits(Duplex, Readable);
 	
@@ -41691,7 +42330,7 @@
 	}
 
 /***/ }),
-/* 49 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process, setImmediate) {// A bit simpler than readable streams.
@@ -41703,7 +42342,7 @@
 	module.exports = Writable;
 	
 	/*<replacement>*/
-	var processNextTick = __webpack_require__(42);
+	var processNextTick = __webpack_require__(45);
 	/*</replacement>*/
 	
 	/*<replacement>*/
@@ -41717,23 +42356,23 @@
 	Writable.WritableState = WritableState;
 	
 	/*<replacement>*/
-	var util = __webpack_require__(45);
-	util.inherits = __webpack_require__(39);
+	var util = __webpack_require__(48);
+	util.inherits = __webpack_require__(42);
 	/*</replacement>*/
 	
 	/*<replacement>*/
 	var internalUtil = {
-	  deprecate: __webpack_require__(52)
+	  deprecate: __webpack_require__(55)
 	};
 	/*</replacement>*/
 	
 	/*<replacement>*/
-	var Stream = __webpack_require__(43);
+	var Stream = __webpack_require__(46);
 	/*</replacement>*/
 	
-	var Buffer = __webpack_require__(12).Buffer;
+	var Buffer = __webpack_require__(15).Buffer;
 	/*<replacement>*/
-	var bufferShim = __webpack_require__(44);
+	var bufferShim = __webpack_require__(47);
 	/*</replacement>*/
 	
 	util.inherits(Writable, Stream);
@@ -41748,7 +42387,7 @@
 	}
 	
 	function WritableState(options, stream) {
-	  Duplex = Duplex || __webpack_require__(48);
+	  Duplex = Duplex || __webpack_require__(51);
 	
 	  options = options || {};
 	
@@ -41882,7 +42521,7 @@
 	}
 	
 	function Writable(options) {
-	  Duplex = Duplex || __webpack_require__(48);
+	  Duplex = Duplex || __webpack_require__(51);
 	
 	  // Writable ctor is applied to Duplexes, too.
 	  // `realHasInstance` is necessary because using plain `instanceof`
@@ -42238,10 +42877,10 @@
 	    }
 	  };
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9), __webpack_require__(50).setImmediate))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12), __webpack_require__(53).setImmediate))
 
 /***/ }),
-/* 50 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var apply = Function.prototype.apply;
@@ -42294,13 +42933,13 @@
 	};
 	
 	// setimmediate attaches itself to the global object
-	__webpack_require__(51);
+	__webpack_require__(54);
 	exports.setImmediate = setImmediate;
 	exports.clearImmediate = clearImmediate;
 
 
 /***/ }),
-/* 51 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -42490,10 +43129,10 @@
 	    attachTo.clearImmediate = clearImmediate;
 	}(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(9)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(12)))
 
 /***/ }),
-/* 52 */
+/* 55 */
 /***/ (function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {
@@ -42567,13 +43206,13 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ }),
-/* 53 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var Buffer = __webpack_require__(12).Buffer;
-	var bufferShim = __webpack_require__(44);
+	var Buffer = __webpack_require__(15).Buffer;
+	var bufferShim = __webpack_require__(47);
 	
 	var isEncoding = Buffer.isEncoding || function (encoding) {
 	  encoding = '' + encoding;
@@ -42845,7 +43484,7 @@
 	}
 
 /***/ }),
-/* 54 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// a transform stream is a readable/writable stream where you do
@@ -42894,11 +43533,11 @@
 	
 	module.exports = Transform;
 	
-	var Duplex = __webpack_require__(48);
+	var Duplex = __webpack_require__(51);
 	
 	/*<replacement>*/
-	var util = __webpack_require__(45);
-	util.inherits = __webpack_require__(39);
+	var util = __webpack_require__(48);
+	util.inherits = __webpack_require__(42);
 	/*</replacement>*/
 	
 	util.inherits(Transform, Duplex);
@@ -43032,7 +43671,7 @@
 	}
 
 /***/ }),
-/* 55 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	// a passthrough stream.
@@ -43043,11 +43682,11 @@
 	
 	module.exports = PassThrough;
 	
-	var Transform = __webpack_require__(54);
+	var Transform = __webpack_require__(57);
 	
 	/*<replacement>*/
-	var util = __webpack_require__(45);
-	util.inherits = __webpack_require__(39);
+	var util = __webpack_require__(48);
+	util.inherits = __webpack_require__(42);
 	/*</replacement>*/
 	
 	util.inherits(PassThrough, Transform);
@@ -43063,35 +43702,35 @@
 	};
 
 /***/ }),
-/* 56 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(49);
-
-
-/***/ }),
-/* 57 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(48);
-
-
-/***/ }),
-/* 58 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(40).Transform
-
-
-/***/ }),
 /* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(40).PassThrough
+	module.exports = __webpack_require__(52);
 
 
 /***/ }),
 /* 60 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(51);
+
+
+/***/ }),
+/* 61 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(43).Transform
+
+
+/***/ }),
+/* 62 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(43).PassThrough
+
+
+/***/ }),
+/* 63 */
 /***/ (function(module, exports) {
 
 	exports['aes-128-ecb'] = {
@@ -43204,7 +43843,7 @@
 	};
 
 /***/ }),
-/* 61 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {
@@ -43264,15 +43903,15 @@
 	    iv: iv
 	  };
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 62 */
+/* 65 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(35);
-	var Transform = __webpack_require__(36);
-	var inherits = __webpack_require__(39);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(38);
+	var Transform = __webpack_require__(39);
+	var inherits = __webpack_require__(42);
 	
 	inherits(StreamCipher, Transform);
 	module.exports = StreamCipher;
@@ -43296,10 +43935,10 @@
 	  this._cipher.scrub();
 	  next();
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 63 */
+/* 66 */
 /***/ (function(module, exports) {
 
 	exports.encrypt = function (self, block) {
@@ -43310,10 +43949,10 @@
 	};
 
 /***/ }),
-/* 64 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var xor = __webpack_require__(65);
+	var xor = __webpack_require__(68);
 	exports.encrypt = function (self, block) {
 	  var data = xor(block, self._prev);
 	  self._prev = self._cipher.encryptBlock(data);
@@ -43327,7 +43966,7 @@
 	};
 
 /***/ }),
-/* 65 */
+/* 68 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {module.exports = xor;
@@ -43340,13 +43979,13 @@
 	  }
 	  return out;
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 66 */
+/* 69 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(65);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(68);
 	exports.encrypt = function (self, data, decrypt) {
 	  var out = new Buffer('');
 	  var len;
@@ -43373,13 +44012,13 @@
 	  self._prev = Buffer.concat([self._prev, decrypt?data:out]);
 	  return out;
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 67 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(65);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(68);
 	function getBlock(self) {
 	  self._prev = self._cipher.encryptBlock(self._prev);
 	  return self._prev;
@@ -43392,13 +44031,13 @@
 	  self._cache = self._cache.slice(chunk.length);
 	  return xor(chunk, pad);
 	};
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 68 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(65);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var xor = __webpack_require__(68);
 	function getBlock(self) {
 	  var out = self._cipher.encryptBlock(self._prev);
 	  incr32(self._prev);
@@ -43426,18 +44065,18 @@
 	    }
 	  }
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 69 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(35);
-	var Transform = __webpack_require__(36);
-	var inherits = __webpack_require__(39);
-	var modes = __webpack_require__(60);
-	var StreamCipher = __webpack_require__(62);
-	var ebtk = __webpack_require__(61);
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var aes = __webpack_require__(38);
+	var Transform = __webpack_require__(39);
+	var inherits = __webpack_require__(42);
+	var modes = __webpack_require__(63);
+	var StreamCipher = __webpack_require__(65);
+	var ebtk = __webpack_require__(64);
 	
 	inherits(Decipher, Transform);
 	function Decipher(mode, key, iv) {
@@ -43505,11 +44144,11 @@
 	}
 	
 	var modelist = {
-	  ECB: __webpack_require__(63),
-	  CBC: __webpack_require__(64),
-	  CFB: __webpack_require__(66),
-	  OFB: __webpack_require__(67),
-	  CTR: __webpack_require__(68)
+	  ECB: __webpack_require__(66),
+	  CBC: __webpack_require__(67),
+	  CFB: __webpack_require__(69),
+	  OFB: __webpack_require__(70),
+	  CTR: __webpack_require__(71)
 	};
 	
 	module.exports = function (crypto) {
@@ -43550,53 +44189,10 @@
 	  };
 	};
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15).Buffer))
 
 /***/ }),
-/* 70 */
-/***/ (function(module, exports) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	var CommandeService = exports.CommandeService = function () {
-	    function CommandeService($http, API_URL, $q) {
-	        _classCallCheck(this, CommandeService);
-	
-	        this.$http = $http;
-	        //Service de promesse fournit par angular
-	        this.$q = $q;
-	        this.API_URL = API_URL;
-	    }
-	
-	    _createClass(CommandeService, [{
-	        key: "getCommande",
-	        value: function getCommande(id) {
-	            return id !== undefined ? this.$http.get(this.API_URL + "/commande/" + id).then(function (response) {
-	                return response.data;
-	            }) : Promise.resolve({});
-	        }
-	    }, {
-	        key: "saveCommande",
-	        value: function saveCommande(commande) {
-	            return commande.id ? this.$http.put(this.API_URL + "/commande/" + commande.id, commande) : this.$http.post(this.API_URL + "/commande", commande).then(function (response) {
-	                return response.data;
-	            });
-	        }
-	    }]);
-
-	    return CommandeService;
-	}();
-
-/***/ }),
-/* 71 */
+/* 73 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -43608,7 +44204,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _home = __webpack_require__(72);
+	var _home = __webpack_require__(74);
 	
 	var _home2 = _interopRequireDefault(_home);
 	
@@ -43650,13 +44246,13 @@
 	};
 
 /***/ }),
-/* 72 */
+/* 74 */
 /***/ (function(module, exports) {
 
 	module.exports = "<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Bienvenue à la pizzeria de DTA ! </h1>\n    <h2> Commande sur place, à emporter ou livraison à domicile ! </h2> <br><br>\n    <h1> Nos dernières pizzas :</h1>\n</div>\n\n<div class=\"col-lg-4 col-md-4 col-sm-6 col-xs-12\" ng-repeat=\"pizza in $ctrl.last3 track by $index\">\n    <div class=\"thumbnail\">\n        <a href=\"/pizzas\" class=\"link tooltip-link\" data-toggle=\"tooltip\" data-original-title=\"Pizza 4 fromages\">\n            <img class=\"derniere-pizza\" ng-src=\"{{pizza.urlImage}}\" alt=\"{{pizza.nom}}\" title=\"{{pizza.nom}}\">\n        </a>\n        <div class=\"caption\">\n            <h3> {{ pizza.nom }} </h3>\n            <p> {{ pizza.prix }} &euro;\n                <ajouter-panier item=\"pizza\" class=\"btn pull-right\"></ajouter-panier>\n            </p>\n        </div>\n    </div>\n</div>"
 
 /***/ }),
-/* 73 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -43666,7 +44262,7 @@
 	});
 	exports.PizzaComponent = undefined;
 	
-	var _pizza = __webpack_require__(74);
+	var _pizza = __webpack_require__(76);
 	
 	var _pizza2 = _interopRequireDefault(_pizza);
 	
@@ -43687,13 +44283,13 @@
 	};
 
 /***/ }),
-/* 74 */
+/* 76 */
 /***/ (function(module, exports) {
 
-	module.exports = "<div class=\"col-sm-4 hidden-xs\">\n\t<img class=\"img-responsive\" src=\"{{$ctrl.pizza.urlImage}}\">\n</div>\n\n<div class=\"col-sm-8\">\n\t{{$ctrl.pizza.nom}}\n\t{{$ctrl.pizza.prix}} &euro;\n\t\n</div>"
+	module.exports = "<div class=\"col-sm-4 hidden-xs\">\n\t<img class=\"img-responsive\" ng-src=\"{{$ctrl.pizza.urlImage}}\">\n</div>\n\n<div class=\"col-sm-8\">\n\t{{$ctrl.pizza.nom}}\n\t{{$ctrl.pizza.prix}} &euro;\t\n</div>"
 
 /***/ }),
-/* 75 */
+/* 77 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -43705,7 +44301,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _listePizzas = __webpack_require__(76);
+	var _listePizzas = __webpack_require__(78);
 	
 	var _listePizzas2 = _interopRequireDefault(_listePizzas);
 	
@@ -43741,13 +44337,78 @@
 	};
 
 /***/ }),
-/* 76 */
+/* 78 */
 /***/ (function(module, exports) {
 
 	module.exports = "<div class=\"panel\">\n\t<div class=\"panel-heading\">\n\t\t<h1>Liste des pizzas</h1>\t\n\t</div>\n\t<div class=\"panel-body\">\n\t\t<div class=\"list-group\">\t\n\t\t\t<div  class=\"list-group-item clearfix\"  ng-repeat=\"pizza in $ctrl.pizzas\">\t\t\n\t\t\t\t<pizza pizza=\"pizza\"></pizza>\t\n\t\t\t\t<ajouter-panier item=\"pizza\"></ajouter-panier>\t\t\t\t\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\n"
 
 /***/ }),
-/* 77 */
+/* 79 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.CommandeComponent = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _commande = __webpack_require__(80);
+	
+	var _commande2 = _interopRequireDefault(_commande);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var controller = function () {
+		function controller(CommandeService) {
+			_classCallCheck(this, controller);
+	
+			this.CommandeService = CommandeService;
+		}
+	
+		_createClass(controller, [{
+			key: '$onInit',
+			value: function $onInit() {
+				var _this = this;
+	
+				this.CommandeService.getCommandes().then(function (commandes) {
+					_this.commandes = commandes;
+				});
+				this.commandeType = 'A_EMPORTER';
+			}
+		}, {
+			key: 'setCommandeType',
+			value: function setCommandeType(type) {
+				this.commandeType = type;
+			}
+		}, {
+			key: 'setCommande',
+			value: function setCommande() {
+				this.CommandeService.setCommande(this.commandeType);
+			}
+		}]);
+	
+		return controller;
+	}();
+	
+	var CommandeComponent = exports.CommandeComponent = {
+		bindings: {},
+		template: _commande2.default,
+		controller: controller
+	};
+
+/***/ }),
+/* 80 */
+/***/ (function(module, exports) {
+
+	module.exports = "<panier></panier>\n<div class=\"container\">\n\t<div class=\"row\">\n\t\t<div class=\"col-sm-6\">\n\t\t\t<button class=\"btn btn-default btn-block\" ng-click=\"$ctrl.setCommandeType('A_EMPORTER')\">A EMPORTER</button> \n\t\t</div>\n\t\t<div class=\"col-sm-6\">\n\t\t\t<button class=\"btn btn-default btn-block\" ng-click=\"$ctrl.setCommandeType('LIVRAISON')\">LIVRAISON A DOMICILE</button>\n\t\t</div>\n\t</div>\n\t<div class=\"row\">\n\t\t<div class=\"col-sm-offset-8 col-sm-4\">\n\t\t\t<button class=\"btn btn-default btn-block\" ng-click=\"$ctrl.setCommande()\">Confirmer la commande</button> \n\t\t</div>\n\t</div>\n</div>"
+
+/***/ }),
+/* 81 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -43759,7 +44420,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _inscription = __webpack_require__(78);
+	var _inscription = __webpack_require__(82);
 	
 	var _inscription2 = _interopRequireDefault(_inscription);
 	
@@ -43804,13 +44465,13 @@
 	};
 
 /***/ }),
-/* 78 */
+/* 82 */
 /***/ (function(module, exports) {
 
-	module.exports = "<div class=\"inscription\">\r\n    <h1 class=\"titre-inscription\">Devenez client !</h1><br>\r\n    <form name=\"formInscription\" novalidate ng-submit=\"$ctrl.validerForm(formInscription)\">\r\n        <div name=\"divEmail\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\r\n            <label for=\"emailClient\">Email : </label>\r\n            <input id=\"emailClient\" name=\"emailClient\" ng-model=\"$ctrl.client.email\" required type=\"email\" placeholder=\"Votre email\" class=\"form-control\">\r\n            <p class=\"text-danger\" role=\"alert\" ng-if=\"formInscription.emailClient.$error.required \r\n            && formInscription.emailClient.$touched\">Veuillez rentrer un email !</p>\r\n            <p class=\"text-danger\" ng-if=\"formInscription.emailClient.$error.email \r\n            && formInscription.emailClient.$touched\">Votre email est invalide !</p>\r\n        </div>\r\n\r\n        <div name=\"divMdp\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\r\n            <label for=\"mdpClient\">Mot de passe : </label>\r\n            <input id=\"mdpClient\" name=\"mdpClient\" ng-model=\"$ctrl.client.motDePasse\" required type=\"password\" placeholder=\"Votre mot de passe\" class=\"form-control\">\r\n            <p class=\"text-danger\" ng-if=\"formInscription.mdpClient.$error.required \r\n            && formInscription.mdpClient.$touched\">Veuillez rentrer un mot de passe !</p>\r\n\r\n            <label for=\"confMdpClient\">Confirmation du mot de passe : </label>\r\n            <input id=\"confMdpClient\" name=\"confMdpClient\" ng-model=\"$ctrl.confMdp\" required type=\"password\" placeholder=\"Confirmez votre mot de passe\"\r\n                class=\"form-control\">\r\n            <p class=\"text-danger\" ng-if=\"$ctrl.client.motDePasse !== $ctrl.confMdp && formInscription.mdpClient.$touched && formInscription.confMdpClient.$touched\">Les mots de passe ne sont pas identiques !</p>\r\n        </div>\r\n\r\n        <div name=\"divNom\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\r\n            <label for=\"nomClient\">Nom : </label>\r\n            <input id=\"nomClient\" name=\"nomClient\" ng-model=\"$ctrl.client.nom\" type=\"text\" placeholder=\"Votre nom\" class=\"form-control\">\r\n        </div>\r\n\r\n        <div name=\"divPrenom\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\r\n            <label for=\"prenomClient\">Prenom : </label>\r\n            <input id=\"prenomClient\" name=\"prenomClient\" ng-model=\"$ctrl.client.prenom\" type=\"text\" placeholder=\"Votre prenom\" class=\"form-control\"><br>\r\n            <button ng-disabled=\"formInscription.$invalid || $ctrl.client.motDePasse !== $ctrl.confMdp\" type=\"submit\" class=\"btn inscriptionBtn\">Créer un compte</button>\r\n        </div>\r\n    </form>\r\n</div>"
+	module.exports = "<div class=\"inscription\">\n    <h1 class=\"titre-inscription\">Devenez client !</h1><br>\n    <form name=\"formInscription\" novalidate ng-submit=\"$ctrl.validerForm(formInscription)\">\n        <div name=\"divEmail\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"emailClient\">Email : </label>\n            <input id=\"emailClient\" name=\"emailClient\" ng-model=\"$ctrl.client.email\" required type=\"email\" placeholder=\"Votre email\" class=\"form-control\">\n            <p class=\"text-danger\" role=\"alert\" ng-if=\"formInscription.emailClient.$error.required \n            && formInscription.emailClient.$touched\">Veuillez rentrer un email !</p>\n            <p class=\"text-danger\" ng-if=\"formInscription.emailClient.$error.email \n            && formInscription.emailClient.$touched\">Votre email est invalide !</p>\n        </div>\n\n        <div name=\"divMdp\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"mdpClient\">Mot de passe : </label>\n            <input id=\"mdpClient\" name=\"mdpClient\" ng-model=\"$ctrl.client.motDePasse\" required type=\"password\" placeholder=\"Votre mot de passe\" class=\"form-control\">\n            <p class=\"text-danger\" ng-if=\"formInscription.mdpClient.$error.required \n            && formInscription.mdpClient.$touched\">Veuillez rentrer un mot de passe !</p>\n\n            <label for=\"confMdpClient\">Confirmation du mot de passe : </label>\n            <input id=\"confMdpClient\" name=\"confMdpClient\" ng-model=\"$ctrl.confMdp\" required type=\"password\" placeholder=\"Confirmez votre mot de passe\"\n                class=\"form-control\">\n            <p class=\"text-danger\" ng-if=\"$ctrl.client.motDePasse !== $ctrl.confMdp && formInscription.mdpClient.$touched && formInscription.confMdpClient.$touched\">Les mots de passe ne sont pas identiques !</p>\n        </div>\n\n        <div name=\"divNom\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"nomClient\">Nom : </label>\n            <input id=\"nomClient\" name=\"nomClient\" ng-model=\"$ctrl.client.nom\" type=\"text\" placeholder=\"Votre nom\" class=\"form-control\">\n        </div>\n\n        <div name=\"divPrenom\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"prenomClient\">Prenom : </label>\n            <input id=\"prenomClient\" name=\"prenomClient\" ng-model=\"$ctrl.client.prenom\" type=\"text\" placeholder=\"Votre prenom\" class=\"form-control\"><br>\n            <button ng-disabled=\"formInscription.$invalid || $ctrl.client.motDePasse !== $ctrl.confMdp\" type=\"submit\" class=\"btn inscriptionBtn\">Créer un compte</button>\n        </div>\n    </form>\n</div>"
 
 /***/ }),
-/* 79 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -43822,7 +44483,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _connexion = __webpack_require__(80);
+	var _connexion = __webpack_require__(84);
 	
 	var _connexion2 = _interopRequireDefault(_connexion);
 	
@@ -43871,13 +44532,13 @@
 	};
 
 /***/ }),
-/* 80 */
+/* 84 */
 /***/ (function(module, exports) {
 
 	module.exports = "<div class=\"inscription\">\n    <h1>Identifiez-vous !</h1><br>\n    <form name=\"formConnexion\" class=\"form-horizontal\" ng-submit=\"$ctrl.connexion()\">\n        <div class=\"form-group\">\n            <label for=\"emailInput\" class=\"col-sm-2 control-label\">Email</label>\n            <div class=\"col-sm-10\">\n                <input type=\"email\" class=\"form-control\" id=\"emailInput\" name=\"emailInput\" placeholder=\"Veuillez saisir votre adresse email\"\n                    ng-model=\"$ctrl.email\" required>\n            </div>\n        </div>\n\n        <div class=\"form-group\">\n            <label for=\"motDePasseInput\" class=\"col-sm-2 control-label\">Mot de passe</label>\n            <div class=\"col-sm-10\">\n                <input type=\"password\" class=\"form-control\" id=\"motDePasseInput\" ng-model=\"$ctrl.motDePasse\" required>\n            </div>\n        </div>\n        <div class=\"form-group\">\n            <div class=\"col-sm-offset-2 col-sm-3\">\n                <button type=\"submit\" class=\"btn inscriptionBtn\" ng-disabled=\"formInscription.$invalid\">Se connecter</button>\n            </div>\n        </div>\n    </form>\n    <div class=\"col-sm-offset-2 col-sm-3\">\n        <a href=\"/inscription\">S'inscrire</a>\n    </div>\n</div>"
 
 /***/ }),
-/* 81 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -43889,7 +44550,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _ajouterPanier = __webpack_require__(82);
+	var _ajouterPanier = __webpack_require__(86);
 	
 	var _ajouterPanier2 = _interopRequireDefault(_ajouterPanier);
 	
@@ -43909,7 +44570,7 @@
 	        value: function ajouterAuStockageLocal() {
 	            var _this = this;
 	
-	            var contenuStockage = this.StockageService.get('panier');
+	            var contenuStockage = this.StockageService.get('panier', 'localStorage');
 	            if (contenuStockage === null) {
 	                contenuStockage = [];
 	            }
@@ -43938,13 +44599,13 @@
 	};
 
 /***/ }),
-/* 82 */
+/* 86 */
 /***/ (function(module, exports) {
 
 	module.exports = "<button class=\"btn bouton\" ng-click=\"$ctrl.ajouterAuStockageLocal()\">Ajouter au panier</button>"
 
 /***/ }),
-/* 83 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -43956,7 +44617,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _panier = __webpack_require__(84);
+	var _panier = __webpack_require__(88);
 	
 	var _panier2 = _interopRequireDefault(_panier);
 	
@@ -44062,13 +44723,13 @@
 	};
 
 /***/ }),
-/* 84 */
+/* 88 */
 /***/ (function(module, exports) {
 
 	module.exports = "<h2>\n    Votre Panier\n</h2>\n<div class=\"table-responsive table-panier\">\n    <table class=\"table\">\n        <tr ng-repeat=\"itemPanier in $ctrl.panier\" ng-init=\"pizza = $ctrl.getPizzabyId(itemPanier.id)\">\n            <td class=\"vert-align\">\n\n                <div class=\"tooltip-panier\">\n                    <img class=\"img-panier\" src=\"{{pizza.urlImage}}\">\n                    <!-- ingredients à gérer dans le modèle\n                        <span class=\"tooltiptext-panier\">\n                        <div ng-repeat=\"ingredient in pizza.ingredients\">\n                            {{ingredient}}\n                        </div>\n                    </span>\n                    -->\n                </div>\n            </td>\n            <td class=\"vert-align\">{{ pizza.nom }}\n                <span class=\"clickable-span glyphicon glyphicon-remove\" ng-click=\"$ctrl.supprimer(itemPanier)\"></span></td>\n            <td class=\"vert-align\"> <b>{{ pizza.prix }} € </b></td>\n            <td class=\"vert-align\"> <b>x{{ itemPanier.quantite }}</b>\n                <span class=\"clickable-span glyphicon glyphicon-plus\" ng-click=\"$ctrl.plusNbPizza(itemPanier)\"></span>\n                <span class=\"clickable-span glyphicon glyphicon-minus\" ng-click=\"$ctrl.moinsNbPizza(itemPanier)\"></span></td>\n        </tr>\n    </table>\n    <div class=\"container\">\n        <div class=\"row pull-right\">\n            <table class=\"table\">\n                <tr>\n                    <td>Total :</td>\n                    <td>{{$ctrl.prixTotal}} €</td>\n                </tr>\n                <!--<tr><td>Promotion :</td><td>4€</td></tr>-->\n                <tr>\n                    <td rowspan=\"2\"><button ng-click=\"$ctrl.passerCommande()\" class=\"btn btn-success\">Passer commande</button></td>\n                </tr>\n            </table>\n        </div>\n    </div>\n</div>"
 
 /***/ }),
-/* 85 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -44080,7 +44741,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _navbar = __webpack_require__(86);
+	var _navbar = __webpack_require__(90);
 	
 	var _navbar2 = _interopRequireDefault(_navbar);
 	
@@ -44120,13 +44781,13 @@
 	};
 
 /***/ }),
-/* 86 */
+/* 90 */
 /***/ (function(module, exports) {
 
 	module.exports = "<nav class='navbar nav-pills navbar-fixed-top'>\n\n    <div class=\"container-fluid\">\n        <div class=\"navbar-header\">\n            <button type=\"button\" class=\"navbar-toggle collapsed\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\">\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                    </button>\n            <a href=\"/\">\n                <img class=\"logo\" src=\"./img/pizza.png\">\n            </a>\n        </div>\n\n        <div id=\"navbar\" class=\"navbar-collapse collapse\">\n            <ul class=\"nav navbar-nav\">\n                <li>\n                    <a href=\"/\">Home</a>\n                </li>\n                <li>\n                    <a href=\"/pizzas\"> Pizzas </a>\n                </li>\n\n            </ul>\n            <ul class=\"nav navbar-nav navbar-right\">\n                <li ng-if=\"$ctrl.getConnectedClient()\">\n                    <a href=\"/compte\"> Mon Compte</a>\n                </li>\n\n                <li><a href=\"/panier\">Mon Panier</a></li>\n\n                <li style=\"background:gold\" ng-if=\"!$ctrl.getConnectedClient()\">\n                    <a href ng-click=\"$ctrl.connecter()\" class=\"login\">Connexion</a>\n                </li>\n\n\n                <li style=\"background: gold\" ng-if=\"!$ctrl.getConnectedClient()\">\n                    <a href=\"/inscription\" class=\"login\">Inscription</a>\n                </li>\n\n                <li style=\"background: gold\" ng-if=\"$ctrl.getConnectedClient()\">\n                    <a href=\"\" class=\"login\">Déconnexion</a>\n                </li>\n            </ul>\n        </div>\n    </div>\n</nav>"
 
 /***/ }),
-/* 87 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -44138,7 +44799,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _monCompte = __webpack_require__(88);
+	var _monCompte = __webpack_require__(92);
 	
 	var _monCompte2 = _interopRequireDefault(_monCompte);
 	
@@ -44183,55 +44844,10 @@
 	};
 
 /***/ }),
-/* 88 */
+/* 92 */
 /***/ (function(module, exports) {
 
 	module.exports = "<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Informations personnelles </h1>\n    <button class=\"btn pull-right bouton\" ng-click=$ctrl.modifications() ng-if=\"!$ctrl.modif\"> Modifier </button>\n    <button class=\"btn pull-right bouton\" ng-click=$ctrl.modifications() ng-if=\"$ctrl.modif\"> Annuler </button>\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Nom :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.nom}}\n        <p ng-if=\"!$ctrl.clientConnecte.nom\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divNom\" class=\"form-group\">\n                <input id=\"nomClient\" name=\"nomClient\" ng-model=\"$ctrl.clientConnecte.nom\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n    </div>\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Prénom :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.prenom}}\n        <p ng-if=\"!$ctrl.clientConnecte.prenom\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divPrenom\" class=\"form-group\">\n                <input id=\"prenomClient\" name=\"prenomClient\" ng-model=\"$ctrl.clientConnecte.prenom\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n    </div>\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Email :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.email}}\n        <p ng-if=\"!$ctrl.clientConnecte.email\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divEmail\" class=\"form-group\">\n                <input id=\"emailClient\" name=\"emailClient\" required ng-model=\"$ctrl.clientConnecte.email\" type=\"email\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"formMAJ.emailClient.$error.email \n                    && formMAJ.emailClient.$touched\">Votre email est invalide !</p>\n                <p class=\"text-danger\" role=\"alert\" ng-if=\"formMAJ.emailClient.$error.required\">Veuillez rentrer un email !</p>\n            </div>\n        </form>\n    </div>\n\n    <!--<div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Mot de passe :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        ******\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divEmail\" class=\"form-group\">\n                <input id=\"mdpClient\" name=\"mdpClient\" ng-model=\"$ctrl.clientConnecte.motDePasse\" type=\"password\" value=\"Votre mot de passe\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"formInscription.mdpClient.$error.required \n                        && formInscription.mdpClient.$touched\">Veuillez rentrer un mot de passe !</p>\n\n                <input id=\"confMdpClient\" name=\"confMdpClient\" ng-model=\"$ctrl.confMdp\" type=\"password\" value=\"Confirmez votre mot de passe\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"$ctrl.clientConnecte.motDePasse !== $ctrl.confMdp && formInscription.mdpClient.$touched && formInscription.confMdpClient.$touched\">Les mots de passe ne sont pas identiques !</p>\n            </div>\n        </form>\n    </div>-->\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Adresse :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.adresse}}\n        <p ng-if=\"!$ctrl.clientConnecte.adresse\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divAdresse\" class=\"form-group\">\n                <input id=\"adresseClient\" name=\"adresseClient\" ng-model=\"$ctrl.clientConnecte.adresse\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n        <button ng-disabled=\"formMAJ.$invalid\" type=\"submit\" class=\"btn bouton\" ng-click=\"$ctrl.soumissionFormulaire()\"> Modifier Informations </button>\n    </div>\n\n</div>\n\n</div>\n\n\n<!--<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Commandes </h1>\n    <table class=\"table\">\n        <thead>\n            <tr>\n                <th> Date </th>\n                <th class=\"hidden-xs\"> N° de commande </th>\n                <th class=\"hidden-xs\"> Statut </th>\n                <th class=\"hidden-xs\"> Prix </th>\n                <th> Détails </th>\n            </tr>\n        </thead>\n        <tbody>\n            <<tr ng-repeat=\"commande from $ctrl.commandes\">\n                <td> commande.dateCommande </td>\n                <td class=\"hidden-xs\"> commande.numeroCommande </td>\n                <td class=\"hidden-xs\"> commande.statut </td>\n                <td class=\"hidden-xs\"> commande.prix </td>\n                <td> <a href=\"/commande/{{commande.id}}\" class=\"btn pull-right dernieres-pizzas\" role=\"button\"> Ajouter au panier </a> </td>x\n            </tr>-->\n</tbody>\n</div>"
-
-/***/ }),
-/* 89 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.CommandeComponent = undefined;
-	
-	var _commande = __webpack_require__(90);
-	
-	var _commande2 = _interopRequireDefault(_commande);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	var controller = function controller(CommandeService, $routeParams) {
-	    var _this = this;
-	
-	    _classCallCheck(this, controller);
-	
-	    this.CommandeService = CommandeService;
-	    this.total = 0;
-	    CommandeService.getCommande($routeParams.id).then(function (commande) {
-	        _this.commande = commande;console.log(_this.commande);
-	        _this.commande.commandesPizzas.forEach(function (element) {
-	            this.total += element.quantite * element.pizza.prix;
-	        }, _this);
-	    });
-	};
-	
-	var CommandeComponent = exports.CommandeComponent = {
-	    controller: controller,
-	    template: _commande2.default
-	};
-
-/***/ }),
-/* 90 */
-/***/ (function(module, exports) {
-
-	module.exports = "<div>\r\n    <h1 class=\"titre-commande\">Commande n°{{$ctrl.commande.numeroCommande}}</h1>\r\n    <table class=\"table\">\r\n        <thead>\r\n        </thead>\r\n        <tbody>\r\n            <tr>\r\n                <th scope=\"row\" class=\"td-commande\">Statut</th>\r\n                <td class=\"td-commande\">{{$ctrl.commande.statut}}</td>\r\n            </tr>\r\n            <tr>\r\n                <th scope=\"row\" class=\"td-commande\">Date</th>\r\n                <td class=\"td-commande\">{{$ctrl.commande.dateCommande.dayOfMonth}}/{{$ctrl.commande.dateCommande.monthValue}}/{{$ctrl.commande.dateCommande.year}}\r\n                    à {{$ctrl.commande.dateCommande.hour}}:{{$ctrl.commande.dateCommande.minute}}:{{$ctrl.commande.dateCommande.second}}</td>\r\n            </tr>\r\n            <tr>\r\n                <th scope=\"row\" class=\"td-commande\">Livreur</th>\r\n                <td class=\"td-commande\">{{$ctrl.commande.livreur.nom}} {{$ctrl.commande.livreur.prenom}}</td>\r\n            </tr>\r\n            <tr>\r\n                <th scope=\"row\" class=\"td-commande\">Adresse de livraison</th>\r\n                <td class=\"td-commande\">{{$ctrl.commande.client.adresse}}</td>\r\n            </tr>\r\n        </tbody>\r\n    </table>\r\n    <table class=\"table\">\r\n        <caption class=\"titre-tab-pizza\">Pizzas commandées</caption>\r\n        <thead>\r\n            <tr>\r\n                <th class=\"td-commande col-sm-4 col-xs-4\">Désignation</th>\r\n                <th class=\"td-commande col-sm-4 col-xs-4\">Quantité</th>\r\n                <th class=\"td-commande col-sm-4 col-xs-4\">Prix Unitaire</th>\r\n                <th class=\"td-commande col-sm-4 col-xs-4\">Montant</th>\r\n                <th class=\"td-commande col-sm-4 col-xs-4\">Total</th>\r\n            </tr>\r\n        </thead>\r\n        <tbody>\r\n            <tr ng-repeat=\"object in $ctrl.commande.commandesPizzas\">\r\n                <td class=\"td-commande col-sm-4 col-xs-4\">{{object.pizza.code}} - {{object.pizza.nom}}</td>\r\n                <td class=\"td-commande col-sm-4 col-xs-4\">{{object.quantite}}</td>\r\n                <td class=\"td-commande col-sm-4 col-xs-4\">{{object.pizza.prix}} €</td>\r\n                <td class=\"td-commande col-sm-4 col-xs-4\">{{object.quantite * object.pizza.prix}} €</td>\r\n            </tr>\r\n            <tr>\r\n                <td></td>\r\n                <td></td>\r\n                <td></td>\r\n                <td></td>\r\n                <td class=\"td-commande\">{{$ctrl.total}}€</td>\r\n            </tr>\r\n        </tbody>\r\n    </table>\r\n</div>"
 
 /***/ })
 /******/ ]);
