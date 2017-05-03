@@ -96,7 +96,7 @@
 	  $locationProvider.html5Mode(true);
 	}).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
 	  localStorageServiceProvider.setPrefix('pizzeriaLS');
-	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).service('PanierService', _panierService.PanierService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscriptionComponent', _inscription.InscriptionComponent).component('connexion', _connexion.ConnexionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent).component('monCompte', _monCompte.MonCompteComponent).component('panierIndicateur', _panierIndicateur.PanierIndicateurComponent);
+	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).service('PanierService', _panierService.PanierService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscription', _inscription.InscriptionComponent).component('connexion', _connexion.ConnexionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent).component('monCompte', _monCompte.MonCompteComponent).component('panierIndicateur', _panierIndicateur.PanierIndicateurComponent);
 	
 	/* beautify preserve:start */
 
@@ -35505,6 +35505,13 @@
 	                return resp.data;
 	            });
 	        }
+	    }, {
+	        key: 'emailExiste',
+	        value: function emailExiste(email) {
+	            return this.$http.get(this.API_URL + '/clients/email/' + email).then(function (resp) {
+	                return resp.data;
+	            });
+	        }
 	    }]);
 
 	    return ClientService;
@@ -44573,6 +44580,17 @@
 	    }
 	
 	    _createClass(controller, [{
+	        key: 'emailExiste',
+	        value: function emailExiste($form) {
+	            var email = $form.emailClient.$viewValue;
+	            if (email != "") {
+	                this.ClientService.emailExiste(email).then(function (resp) {
+	                    $form.emailClient.$setValidity("email_existant", !resp);
+	                    console.log($form.emailClient.$error);
+	                });
+	            }
+	        }
+	    }, {
 	        key: 'validerForm',
 	        value: function validerForm(userForm) {
 	            var _this = this;
@@ -44597,7 +44615,7 @@
 /* 83 */
 /***/ (function(module, exports) {
 
-	module.exports = "<div class=\"inscription\">\n    <h1 class=\"titre-inscription\">Devenez client !</h1><br>\n    <form name=\"formInscription\" novalidate ng-submit=\"$ctrl.validerForm(formInscription)\">\n        <div name=\"divEmail\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"emailClient\">Email : </label>\n            <input id=\"emailClient\" name=\"emailClient\" ng-model=\"$ctrl.client.email\" required type=\"email\" placeholder=\"Votre email\" class=\"form-control\">\n            <p class=\"text-danger\" role=\"alert\" ng-if=\"formInscription.emailClient.$error.required \n            && formInscription.emailClient.$touched\">Veuillez rentrer un email !</p>\n            <p class=\"text-danger\" ng-if=\"formInscription.emailClient.$error.email \n            && formInscription.emailClient.$touched\">Votre email est invalide !</p>\n        </div>\n\n        <div name=\"divMdp\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"mdpClient\">Mot de passe : </label>\n            <input id=\"mdpClient\" name=\"mdpClient\" ng-model=\"$ctrl.client.motDePasse\" required type=\"password\" placeholder=\"Votre mot de passe\" class=\"form-control\">\n            <p class=\"text-danger\" ng-if=\"formInscription.mdpClient.$error.required \n            && formInscription.mdpClient.$touched\">Veuillez rentrer un mot de passe !</p>\n\n            <label for=\"confMdpClient\">Confirmation du mot de passe : </label>\n            <input id=\"confMdpClient\" name=\"confMdpClient\" ng-model=\"$ctrl.confMdp\" required type=\"password\" placeholder=\"Confirmez votre mot de passe\"\n                class=\"form-control\">\n            <p class=\"text-danger\" ng-if=\"$ctrl.client.motDePasse !== $ctrl.confMdp && formInscription.mdpClient.$touched && formInscription.confMdpClient.$touched\">Les mots de passe ne sont pas identiques !</p>\n        </div>\n\n        <div name=\"divNom\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"nomClient\">Nom : </label>\n            <input id=\"nomClient\" name=\"nomClient\" ng-model=\"$ctrl.client.nom\" type=\"text\" placeholder=\"Votre nom\" class=\"form-control\">\n        </div>\n\n        <div name=\"divPrenom\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"prenomClient\">Prenom : </label>\n            <input id=\"prenomClient\" name=\"prenomClient\" ng-model=\"$ctrl.client.prenom\" type=\"text\" placeholder=\"Votre prenom\" class=\"form-control\"><br>\n            <button ng-disabled=\"formInscription.$invalid || $ctrl.client.motDePasse !== $ctrl.confMdp\" type=\"submit\" class=\"btn inscriptionBtn\">Créer un compte</button>\n        </div>\n    </form>\n</div>"
+	module.exports = "<div class=\"inscription\">\r\n    <h1 class=\"titre-inscription\">Devenez client !</h1><br>\r\n    <form name=\"formInscription\" novalidate ng-submit=\"$ctrl.validerForm(formInscription)\">\r\n        <div name=\"divEmail\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\r\n            <label for=\"emailClient\">Email : </label>\r\n            <input id=\"emailClient\" name=\"emailClient\" ng-model=\"$ctrl.client.email\" ng-blur=\"$ctrl.emailExiste(formInscription)\"  required type=\"email\" placeholder=\"Votre email\" class=\"form-control\">\r\n            <p class=\"text-danger\" role=\"alert\" ng-if=\"formInscription.emailClient.$error.required \r\n            && formInscription.emailClient.$touched\">Veuillez rentrer un email !</p>\r\n            <p class=\"text-danger\" ng-if=\"formInscription.emailClient.$error.email \r\n            && formInscription.emailClient.$touched\">Votre email est invalide !</p>\r\n            <p class=\"text-danger\" ng-if=\"formInscription.emailClient.$error.email_existant \r\n            && formInscription.emailClient.$touched\")>L'email est déjà enregistré !</p>\r\n        </div>\r\n\r\n        <div name=\"divMdp\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\r\n            <label for=\"mdpClient\">Mot de passe : </label>\r\n            <input id=\"mdpClient\" name=\"mdpClient\" ng-model=\"$ctrl.client.motDePasse\" required type=\"password\" placeholder=\"Votre mot de passe\" class=\"form-control\">\r\n            <p class=\"text-danger\" ng-if=\"formInscription.mdpClient.$error.required \r\n            && formInscription.mdpClient.$touched\">Veuillez rentrer un mot de passe !</p>\r\n\r\n            <label for=\"confMdpClient\">Confirmation du mot de passe : </label>\r\n            <input id=\"confMdpClient\" name=\"confMdpClient\" ng-model=\"$ctrl.confMdp\" required type=\"password\" placeholder=\"Confirmez votre mot de passe\"\r\n                class=\"form-control\">\r\n            <p class=\"text-danger\" ng-if=\"$ctrl.client.motDePasse !== $ctrl.confMdp && formInscription.mdpClient.$touched && formInscription.confMdpClient.$touched\">Les mots de passe ne sont pas identiques !</p>\r\n        </div>\r\n\r\n        <div name=\"divNom\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\r\n            <label for=\"nomClient\">Nom : </label>\r\n            <input id=\"nomClient\" name=\"nomClient\" ng-model=\"$ctrl.client.nom\" type=\"text\" placeholder=\"Votre nom\" class=\"form-control\">\r\n        </div>\r\n\r\n        <div name=\"divPrenom\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\r\n            <label for=\"prenomClient\">Prenom : </label>\r\n            <input id=\"prenomClient\" name=\"prenomClient\" ng-model=\"$ctrl.client.prenom\" type=\"text\" placeholder=\"Votre prenom\" class=\"form-control\"><br>\r\n            <button ng-disabled=\"formInscription.$invalid || $ctrl.client.motDePasse !== $ctrl.confMdp\" type=\"submit\" class=\"btn inscriptionBtn\">Créer un compte</button>\r\n        </div>\r\n    </form>\r\n</div>"
 
 /***/ }),
 /* 84 */
