@@ -44338,8 +44338,6 @@
 	});
 	exports.HomeComponent = undefined;
 	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
 	var _home = __webpack_require__(75);
 	
 	var _home2 = _interopRequireDefault(_home);
@@ -44348,32 +44346,17 @@
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var controller = function () {
-	    function controller(PizzaService) {
-	        var _this = this;
+	var controller = function controller(PizzaService) {
+	    var _this = this;
 	
-	        _classCallCheck(this, controller);
+	    _classCallCheck(this, controller);
 	
-	        this.PizzaService = PizzaService;
+	    this.PizzaService = PizzaService;
 	
-	        this.PizzaService.getPizzas().then(function (pizzas) {
-	            _this.pizzas = pizzas;
-	            _this.getLast3();
-	        });
-	        this.last3 = [];
-	    }
-	
-	    _createClass(controller, [{
-	        key: "getLast3",
-	        value: function getLast3() {
-	            this.last3.push(this.pizzas[this.pizzas.length - 1]);
-	            this.last3.push(this.pizzas[this.pizzas.length - 2]);
-	            this.last3.push(this.pizzas[this.pizzas.length - 3]);
-	        }
-	    }]);
-	
-	    return controller;
-	}();
+	    this.pizzas = this.PizzaService.getPizzas().then(function (pizzas) {
+	        _this.pizzas = pizzas;
+	    });
+	};
 	
 	var HomeComponent = exports.HomeComponent = {
 	    bindings: {},
@@ -44385,7 +44368,7 @@
 /* 75 */
 /***/ (function(module, exports) {
 
-	module.exports = "<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Bienvenue à la pizzeria de DTA ! </h1>\n    <h2> Commande sur place, à emporter ou livraison à domicile ! </h2> <br><br>\n    <h1> Nos dernières pizzas :</h1>\n</div>\n\n<div class=\"col-lg-4 col-md-4 col-sm-6 col-xs-12\" ng-repeat=\"pizza in $ctrl.last3 track by $index\">\n    <div class=\"thumbnail\">\n        <a href=\"/pizzas\" class=\"link tooltip-link\" data-toggle=\"tooltip\" data-original-title=\"Pizza 4 fromages\">\n            <img class=\"derniere-pizza\" ng-src=\"{{pizza.urlImage}}\" alt=\"{{pizza.nom}}\" title=\"{{pizza.nom}}\">\n        </a>\n        <div class=\"caption\">\n            <h3> {{ pizza.nom }} </h3>\n            <p> {{ pizza.prix }} &euro;\n                <ajouter-panier item=\"pizza\" class=\"btn pull-right\"></ajouter-panier>\n            </p>\n        </div>\n    </div>\n</div>"
+	module.exports = "<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Bienvenue à la pizzeria de DTA ! </h1>\n    <h2> Commande sur place, à emporter ou livraison à domicile ! </h2> <br><br>\n    <h1> Nos 3 dernières pizzas :</h1>\n</div>\n\n<div class=\"col-lg-4 col-md-4 col-sm-6 col-xs-12\" ng-repeat=\"pizza in $ctrl.pizzas|limitTo:3 track by $index\">\n    <pizza pizza=\"pizza\"></pizza>\n    <ajouter-panier item=\"pizza\"></ajouter-panier>\n</div>"
 
 /***/ }),
 /* 76 */
@@ -44422,7 +44405,7 @@
 /* 77 */
 /***/ (function(module, exports) {
 
-	module.exports = "<div class=\"col-sm-4 hidden-xs\">\n\t<img class=\"img-responsive\" ng-src=\"{{$ctrl.pizza.urlImage}}\">\n</div>\n\n<div class=\"col-sm-8\">\n\t{{$ctrl.pizza.nom}}\n\t{{$ctrl.pizza.prix}} &euro;\t\n</div>"
+	module.exports = "<div class=\"well well-lg weel-pizza\" data-toggle=\"modal\" data-target=\"#myModal{{$ctrl.pizza.id}}\">\n\t<img class=\"img-responsive center-block\" src=\"{{$ctrl.pizza.urlImage}}\">\n\t<h2>{{$ctrl.pizza.nom}}</h2>\n\t<p>{{$ctrl.pizza.prix}} &euro;</p>\n</div>\n<!-- Modal -->\n<div class=\"modal fade\" id=\"myModal{{$ctrl.pizza.id}}\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"myModalLabel\">\n\t<div class=\"modal-dialog\" role=\"document\">\n\t\t<div class=\"modal-content\">\n\t\t<div class=\"modal-header\">\n\t\t\t<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n\t\t\t<h4 class=\"modal-title\" id=\"myModalLabel\">{{$ctrl.pizza.nom}}</h4>\n\t\t</div>\n\t\t<div class=\"modal-body\">\n\t\t\t<img class=\"img-responsive\" src=\"{{$ctrl.pizza.urlImage}}\">\n\t\t\t{{$ctrl.pizza.prix}} &euro;\n\t\t</div>\n\n\t\t<!-- Table -->\n\t\t<table class=\"table table-striped\">\n\t\t\t<tr><th>Ingrédients</th></tr>\n\t\t\t<tr ng-repeat=\"ingredient in $ctrl.pizza.listeIngredients\"><td>ingredient</td></tr>\n\t\t</table>\n\t\t<div class=\"modal-footer\">\n\t\t\t<ajouter-panier item=\"$ctrl.pizza\"></ajouter-panier>\n\t\t</div>\n\t\t</div>\n\t</div>\n</div>"
 
 /***/ }),
 /* 78 */
@@ -44457,8 +44440,19 @@
 	        value: function $onInit() {
 	            var _this = this;
 	
-	            this.pizzas = this.PizzaService.getPizzas().then(function (pizzas) {
-	                return _this.pizzas = pizzas;
+	            return this.pizzas = this.PizzaService.getPizzas().then(function (pizzas) {
+	                _this.pizzas = pizzas;
+	                _this.pizzasCat = pizzas;
+	            });
+	        }
+	    }, {
+	        key: 'setCategorie',
+	        value: function setCategorie(cat) {
+	            this.pizzasCat = this.pizzas;
+	            this.categorie = cat;
+	            if (cat == null) return this.pizzasCat;
+	            return this.pizzasCat = this.pizzasCat.filter(function (pizza) {
+	                if (pizza.categorie === cat) return pizza;
 	            });
 	        }
 	    }]);
@@ -44476,7 +44470,7 @@
 /* 79 */
 /***/ (function(module, exports) {
 
-	module.exports = "<div class=\"panel\">\n\t<div class=\"panel-heading\">\n\t\t<h1>Liste des pizzas</h1>\t\n\t</div>\n\t<div class=\"panel-body\">\n\t\t<div class=\"list-group\">\t\n\t\t\t<div  class=\"list-group-item clearfix\"  ng-repeat=\"pizza in $ctrl.pizzas\">\t\t\n\t\t\t\t<pizza pizza=\"pizza\"></pizza>\t\n\t\t\t\t<ajouter-panier item=\"pizza\"></ajouter-panier>\t\t\t\t\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\n"
+	module.exports = "<h1>Liste des pizzas</h1>\n<ul class=\"nav nav-pills\">\n\t<!-- TODO Mettre la class 'active' sur les li -->\n\t<li role=\"presentation\"><a ng-click=\"$ctrl.setCategorie()\" href=\"#\">Toutes</a></li>\n\t<li role=\"presentation\"><a ng-click=\"$ctrl.setCategorie('VIANDE')\" href=\"#\">Viande</a></li>\n\t<li role=\"presentation\"><a ng-click=\"$ctrl.setCategorie('SANS_VIANDE')\" href=\"#\">Sans viande</a></li>\n\t<li role=\"presentation\"><a ng-click=\"$ctrl.setCategorie('POISSON')\" href=\"#\">Poisson</a></li>\n</ul>\n<br>\n<div class=\"row\">\n\t<div class=\"col-lg-4 col-md-4 col-sm-6 col-xs-12\" ng-repeat=\"pizza in $ctrl.pizzasCat\" style=\"margin-bottom: 15px;\">\n\t\t<pizza pizza=\"pizza\"></pizza>\n\t\t<ajouter-panier item=\"pizza\"></ajouter-panier>\n\t</div>\n</div>"
 
 /***/ }),
 /* 80 */
@@ -44735,7 +44729,7 @@
 /* 87 */
 /***/ (function(module, exports) {
 
-	module.exports = "<button class=\"btn bouton\" ng-click=\"$ctrl.ajouterAuStockageLocal()\">Ajouter au panier</button>"
+	module.exports = "<button class=\"btn bouton btn-block\" ng-click=\"$ctrl.ajouterAuStockageLocal()\">Ajouter au panier</button>"
 
 /***/ }),
 /* 88 */
