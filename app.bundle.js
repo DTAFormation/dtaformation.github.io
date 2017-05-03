@@ -35508,7 +35508,16 @@
 	    }, {
 	        key: 'emailExiste',
 	        value: function emailExiste(email) {
+	
 	            return this.$http.get(this.API_URL + '/clients/email?value=' + email).then(function (resp) {
+	                return resp.data;
+	            });
+	        }
+	    }, {
+	        key: 'testMdpUtilisateur',
+	        value: function testMdpUtilisateur(id, motDePasse) {
+	
+	            return this.$http.get(this.API_URL + '/clients/verifPwd?id=' + id + '&motDePasse=' + (0, _jsSha2.default)(motDePasse)).then(function (resp) {
 	                return resp.data;
 	            });
 	        }
@@ -44883,9 +44892,12 @@
 	
 	        this.ClientService = ClientService;
 	        this.modif = false;
+	        this.currentMdp = "";
+	        this.newMdp = "";
+	        this.newMdp2 = "";
 	
 	        this.ClientService.getConnectedClient().then(function (client) {
-	            return _this.clientConnecte = client;
+	            _this.clientConnecte = client;_this.clientConnecteNonModif = Object.assign({}, client);
 	        });
 	    }
 	
@@ -44896,9 +44908,69 @@
 	        }
 	    }, {
 	        key: "soumissionFormulaire",
-	        value: function soumissionFormulaire() {
+	        value: function soumissionFormulaire($form) {
 	            this.modifications();
+	
+	            if ($form.mdpClient.$viewValue.trim() !== "") {
+	                this.clientConnecte.motDePasse = $form.mdpClient.$viewValue;
+	            }
+	            if ($form.currentMdpClient.$viewValue === "") {
+	                this.clientConnecte.motDePasse = "";
+	            }
 	            this.ClientService.saveClient(this.clientConnecte);
+	        }
+	    }, {
+	        key: "emailExiste",
+	        value: function emailExiste($form) {
+	
+	            var email = $form.emailClient.$viewValue;
+	
+	            if (email !== "" && email !== this.clientConnecteNonModif.email) {
+	                this.ClientService.emailExiste(email).then(function (resp) {
+	                    $form.emailClient.$setValidity("email_existant", !resp);
+	                });
+	            } else {
+	                $form.emailClient.$setValidity("email_existant", true);
+	            }
+	        }
+	    }, {
+	        key: "testMdpUtilisateur",
+	        value: function testMdpUtilisateur($form) {
+	            var mdp = $form.currentMdpClient.$viewValue;
+	            if (mdp.trim() !== "") {
+	                $form.currentMdpClient.$setValidity("mdp_aucune_saisie", true);
+	                $form.currentMdpClient.$setValidity("mdp_vide", true);
+	                this.ClientService.testMdpUtilisateur(this.clientConnecte.id, mdp).then(function (resp) {
+	                    $form.currentMdpClient.$setValidity("mdp_faux", resp);
+	                });
+	            } else {
+	                $form.currentMdpClient.$setValidity("mdp_faux", true);
+	                if (mdp !== "") {
+	                    $form.currentMdpClient.$setValidity("mdp_vide", false);
+	                    $form.currentMdpClient.$setValidity("mdp_aucune_saisie", true);
+	                } else {
+	                    $form.currentMdpClient.$setValidity("mdp_aucune_saisie", false);
+	                    $form.currentMdpClient.$setValidity("mdp_vide", true);
+	                }
+	            }
+	        }
+	    }, {
+	        key: "testNouveauMdpUtilisateur",
+	        value: function testNouveauMdpUtilisateur($form) {
+	            var mdp = $form.mdpClient.$viewValue;
+	
+	            if (mdp.trim() !== "") {
+	                $form.mdpClient.$setValidity("mdpMod_vide", true);
+	                $form.mdpClient.$setValidity("mdpMod_aucune_saisie", true);
+	            } else {
+	                if (mdp !== "") {
+	                    $form.mdpClient.$setValidity("mdpMod_aucune_saisie", true);
+	                    $form.mdpClient.$setValidity("mdpMod_vide", false);
+	                } else {
+	                    $form.mdpClient.$setValidity("mdpMod_aucune_saisie", false);
+	                    $form.mdpClient.$setValidity("mdpMod_vide", true);
+	                }
+	            }
 	        }
 	    }]);
 	
@@ -44915,7 +44987,7 @@
 /* 93 */
 /***/ (function(module, exports) {
 
-	module.exports = "<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Informations personnelles </h1>\n    <button class=\"btn pull-right bouton\" ng-click=$ctrl.modifications() ng-if=\"!$ctrl.modif\"> Modifier </button>\n    <button class=\"btn pull-right bouton\" ng-click=$ctrl.modifications() ng-if=\"$ctrl.modif\"> Annuler </button>\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Nom :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.nom}}\n        <p ng-if=\"!$ctrl.clientConnecte.nom\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divNom\" class=\"form-group\">\n                <input id=\"nomClient\" name=\"nomClient\" ng-model=\"$ctrl.clientConnecte.nom\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n    </div>\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Prénom :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.prenom}}\n        <p ng-if=\"!$ctrl.clientConnecte.prenom\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divPrenom\" class=\"form-group\">\n                <input id=\"prenomClient\" name=\"prenomClient\" ng-model=\"$ctrl.clientConnecte.prenom\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n    </div>\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Email :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.email}}\n        <p ng-if=\"!$ctrl.clientConnecte.email\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divEmail\" class=\"form-group\">\n                <input id=\"emailClient\" name=\"emailClient\" required ng-model=\"$ctrl.clientConnecte.email\" type=\"email\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"formMAJ.emailClient.$error.email \n                    && formMAJ.emailClient.$touched\">Votre email est invalide !</p>\n                <p class=\"text-danger\" role=\"alert\" ng-if=\"formMAJ.emailClient.$error.required\">Veuillez rentrer un email !</p>\n            </div>\n        </form>\n    </div>\n\n    <!--<div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Mot de passe :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        ******\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divEmail\" class=\"form-group\">\n                <input id=\"mdpClient\" name=\"mdpClient\" ng-model=\"$ctrl.clientConnecte.motDePasse\" type=\"password\" value=\"Votre mot de passe\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"formInscription.mdpClient.$error.required \n                        && formInscription.mdpClient.$touched\">Veuillez rentrer un mot de passe !</p>\n\n                <input id=\"confMdpClient\" name=\"confMdpClient\" ng-model=\"$ctrl.confMdp\" type=\"password\" value=\"Confirmez votre mot de passe\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"$ctrl.clientConnecte.motDePasse !== $ctrl.confMdp && formInscription.mdpClient.$touched && formInscription.confMdpClient.$touched\">Les mots de passe ne sont pas identiques !</p>\n            </div>\n        </form>\n    </div>-->\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Adresse :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.adresse}}\n        <p ng-if=\"!$ctrl.clientConnecte.adresse\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divAdresse\" class=\"form-group\">\n                <input id=\"adresseClient\" name=\"adresseClient\" ng-model=\"$ctrl.clientConnecte.adresse\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n        <button ng-disabled=\"formMAJ.$invalid\" type=\"submit\" class=\"btn bouton\" ng-click=\"$ctrl.soumissionFormulaire()\"> Modifier Informations </button>\n    </div>\n\n</div>\n\n</div>\n\n\n<!--<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Commandes </h1>\n    <table class=\"table\">\n        <thead>\n            <tr>\n                <th> Date </th>\n                <th class=\"hidden-xs\"> N° de commande </th>\n                <th class=\"hidden-xs\"> Statut </th>\n                <th class=\"hidden-xs\"> Prix </th>\n                <th> Détails </th>\n            </tr>\n        </thead>\n        <tbody>\n            <<tr ng-repeat=\"commande from $ctrl.commandes\">\n                <td> commande.dateCommande </td>\n                <td class=\"hidden-xs\"> commande.numeroCommande </td>\n                <td class=\"hidden-xs\"> commande.statut </td>\n                <td class=\"hidden-xs\"> commande.prix </td>\n                <td> <a href=\"/commande/{{commande.id}}\" class=\"btn pull-right dernieres-pizzas\" role=\"button\"> Ajouter au panier </a> </td>x\n            </tr>-->\n</tbody>\n</div>"
+	module.exports = "<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12 container\" style=\"background:white ; border-radius:15px ; border: 2px solid brown;\" >\n    <h1> Informations personnelles  <button class=\"btn bouton\" ng-click=$ctrl.modifications() ng-if=\"!$ctrl.modif\"> Modifier </button> </h1>\n    <div class=\"table-responsive\">\n    <table ng-if=\"!$ctrl.modif\" class=\"table-striped table\">\n        <thead>\n        </thead>\n        <tbody>\n            <tr>\n                <td> Nom: </td> <td> {{$ctrl.clientConnecte.nom}} </td>\n            </tr>\n            <tr>\n                <td> Prenom: </td> <td> {{$ctrl.clientConnecte.prenom}} </td>\n            </tr>\n            <tr>\n                <td> Email: </td> <td> {{$ctrl.clientConnecte.email}} </td>\n            </tr>\n            <tr>\n                <td> Mot de passe: </td> <td> ****** </td>\n            </tr>\n            <tr>\n                <td> Adresse: </td> <td> {{$ctrl.clientConnecte.adresse}} </td>\n            </tr>\n\n        </tbody>\n    </table>\n\n    <form name=\"formMAJ\">\n    <table ng-if=\"$ctrl.modif\" class=\"table-striped table\">\n        <thead>\n        </thead>\n        <tbody>\n            <tr>\n                <td> Nom: </td> <td>  <input id=\"nomClient\" name=\"nomClient\" ng-model=\"$ctrl.clientConnecte.nom\" type=\"text\" value=\"JAIMERAIS QUE TU TAFFICHES\" class=\"form-control\"></td>\n            </tr>\n            <tr>\n                <td> Prenom: </td> <td> <input id=\"prenomClient\" name=\"prenomClient\" ng-model=\"$ctrl.clientConnecte.prenom\" type=\"text\" value=\"Votre prenom\" class=\"form-control\"> </td>\n            </tr>\n            <tr>\n                <td> Email: </td> <td> <input id=\"emailClient\" name=\"emailClient\" ng-blur=\"$ctrl.emailExiste(formMAJ)\" required ng-model=\"$ctrl.clientConnecte.email\" type=\"email\" value=\"Votre email\" class=\"form-control\">\n\n                <p class=\"text-danger\" ng-if=\"formMAJ.emailClient.$error.email \n                    && formMAJ.emailClient.$touched\">Votre email est invalide !</p>\n                <p class=\"text-danger\" role=\"alert\" ng-if=\"formMAJ.emailClient.$error.required\">Veuillez rentrer un email !</p> \n                <p class=\"text-danger\" role=\"alert\" ng-if=\"formMAJ.emailClient.$error.email_existant\">Email déjà existant</p>\n                \n                </td>\n            </tr>\n            <tr>\n                <td> Adresse: </td> <td>  <input id=\"adresseClient\" name=\"adresseClient\" ng-model=\"$ctrl.clientConnecte.adresse\" type=\"text\" value=\"Votre adresse\" class=\"form-control\"> </td>\n            </tr>\n            <tr>\n                <td> Mot de passe actuel: </td> \n                <td>\n                     <input id=\"currentMdpClient\" name=\"currentMdpClient\" ng-blur=\"!$ctrl.testMdpUtilisateur(formMAJ)\" ng-model=\"$ctrl.currentMdp\" type=\"password\" class=\"form-control\">\n                     <p class=\"text-danger\" role=\"alert\" ng-if=\"formMAJ.currentMdpClient.$error.mdp_faux\"> Mot de passe incorrect </p>\n                     <p class=\"text-danger\" role=\"alert\" ng-if=\"formMAJ.currentMdpClient.$error.mdp_vide\"> Saisie incorrect: que des espaces </p>\n                     <p class=\"text-danger\" role=\"alert\" ng-if=\"formMAJ.currentMdpClient.$error.mdp_aucune_saisie && !formMAJ.mdpClient.$error.mdpMod_aucune_saisie\"> Veuillez saisir votre mot de passe </p>\n                </td>\n            </tr>\n            <tr>\n                <td> Nouveau mot de passe: </td> \n                <td>\n                     <input id=\"mdpClient\" name=\"mdpClient\" ng-model=\"$ctrl.newMdp\" ng-blur=\"!$ctrl.testNouveauMdpUtilisateur(formMAJ)\" type=\"password\" class=\"form-control\">  \n                     <p class=\"text-danger\" role=\"alert\" ng-if=\"formMAJ.mdpClient.$error.mdpMod_vide\"> Saisie incorrect: que des espaces </p>\n                </td>          \n            </tr>\n             <tr>\n                <td> Ressaisir mot de passe: </td> \n                <td>\n                    <input id=\"confMdpClient\" name=\"confMdpClient\" ng-model=\"$ctrl.newMdp2\"  type=\"password\"  class=\"form-control\">\n                    <p class=\"text-danger\" ng-if=\"$ctrl.newMdp !== $ctrl.newMdp2 && formMAJ.mdpClient.$touched && formMAJ.confMdpClient.$touched\">\n                        Les mots de passe ne sont pas identiques !                \n                    </p>\n                </td>\n            </tr>\n        </tbody>\n        <tfoot>\n            <button  ng-if=\"$ctrl.modif\" \n            ng-disabled=\"$ctrl.newMdp !== $ctrl.newMdp2 || formMAJ.currentMdpClient.$error.mdp_faux   || formMAJ.currentMdpClient.$error.mdp_vide \n            || formMAJ.mdpClient.$error.mdpMod_vide || formMAJ.emailClient.$error.email_existant\" \n            type=\"submit\" class=\"btn bouton\" ng-click=\"$ctrl.soumissionFormulaire(formMAJ)\"> Valider Modifications </button>\n        </tfoot>\n        \n    </table>\n     \n    </form>\n    </div>\n</div>\n\n    <!--<div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Mot de passe :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        ******\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divEmail\" class=\"form-group\">\n                <input id=\"mdpClient\" name=\"mdpClient\" ng-model=\"$ctrl.clientConnecte.motDePasse\" type=\"password\" value=\"Votre mot de passe\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"formInscription.mdpClient.$error.required \n                        && formInscription.mdpClient.$touched\">Veuillez rentrer un mot de passe !</p>\n\n                <input id=\"confMdpClient\" name=\"confMdpClient\" ng-model=\"$ctrl.confMdp\" type=\"password\" value=\"Confirmez votre mot de passe\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"$ctrl.clientConnecte.motDePasse !== $ctrl.confMdp && formInscription.mdpClient.$touched && formInscription.confMdpClient.$touched\">Les mots de passe ne sont pas identiques !</p>\n            </div>\n        </form>\n    </div>-->\n\n\n<!--<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Commandes </h1>\n    <table class=\"table\">\n        <thead>\n            <tr>\n                <th> Date </th>\n                <th class=\"hidden-xs\"> N° de commande </th>\n                <th class=\"hidden-xs\"> Statut </th>\n                <th class=\"hidden-xs\"> Prix </th>\n                <th> Détails </th>\n            </tr>\n        </thead>\n        <tbody>\n            <<tr ng-repeat=\"commande from $ctrl.commandes\">\n                <td> commande.dateCommande </td>\n                <td class=\"hidden-xs\"> commande.numeroCommande </td>\n                <td class=\"hidden-xs\"> commande.statut </td>\n                <td class=\"hidden-xs\"> commande.prix </td>\n                <td> <a href=\"/commande/{{commande.id}}\" class=\"btn pull-right dernieres-pizzas\" role=\"button\"> Ajouter au panier </a> </td>x\n            </tr>\n</tbody>\n</div>-->"
 
 /***/ }),
 /* 94 */
