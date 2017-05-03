@@ -64,38 +64,41 @@
 	
 	var _client = __webpack_require__(10);
 	
-	var _home = __webpack_require__(73);
+	var _panierService = __webpack_require__(73);
 	
-	var _pizza2 = __webpack_require__(75);
+	var _home = __webpack_require__(74);
 	
-	var _listePizzas = __webpack_require__(77);
+	var _pizza2 = __webpack_require__(76);
 	
-	var _commande2 = __webpack_require__(79);
+	var _listePizzas = __webpack_require__(78);
 	
-	var _inscription = __webpack_require__(81);
+	var _commande2 = __webpack_require__(80);
 	
-	var _connexion = __webpack_require__(83);
+	var _inscription = __webpack_require__(82);
 	
-	var _ajouterPanier = __webpack_require__(85);
+	var _connexion = __webpack_require__(84);
 	
-	var _panier = __webpack_require__(87);
+	var _ajouterPanier = __webpack_require__(86);
 	
-	var _navbar = __webpack_require__(89);
+	var _panier = __webpack_require__(88);
 	
-	var _monCompte = __webpack_require__(91);
+	var _navbar = __webpack_require__(90);
 	
-	var _panierIndicateur = __webpack_require__(93);
+	var _monCompte = __webpack_require__(92);
+	
+	var _panierIndicateur = __webpack_require__(94);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	/* beautify preserve:end */
 	
-	/* beautify preserve:start */
 	_angular2.default.module('pizzeria', [_angularRoute2.default, 'LocalStorageModule']).value('API_URL', ("https://app-b325c1a6-237a-4e11-bdde-39f93eee7f51.cleverapps.io")).config(_routes.routes).config(function ($routeProvider, $locationProvider) {
 	  $locationProvider.html5Mode(true);
 	}).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
 	  localStorageServiceProvider.setPrefix('pizzeriaLS');
-	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscriptionComponent', _inscription.InscriptionComponent).component('connexion', _connexion.ConnexionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent).component('monCompte', _monCompte.MonCompteComponent).component('panierIndicateur', _panierIndicateur.PanierIndicateurComponent);
+	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).service('PanierService', _panierService.PanierService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscriptionComponent', _inscription.InscriptionComponent).component('connexion', _connexion.ConnexionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent).component('monCompte', _monCompte.MonCompteComponent).component('panierIndicateur', _panierIndicateur.PanierIndicateurComponent);
+	
+	/* beautify preserve:start */
 
 /***/ }),
 /* 1 */
@@ -44198,6 +44201,127 @@
 
 /***/ }),
 /* 73 */
+/***/ (function(module, exports) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var PanierService = exports.PanierService = function () {
+	  function PanierService($location, localStorageService, PizzaService) {
+	    var _this = this;
+	
+	    _classCallCheck(this, PanierService);
+	
+	    this.localStorageService = localStorageService;
+	    this.PizzaService = PizzaService;
+	
+	    this.panier = this.localStorageService.get('panier', 'localStorage');
+	    this.pizzas = [];
+	    this.prixTotal = 0;
+	    this.PizzaService.getPizzas().then(function (pizzas) {
+	      _this.pizzas = pizzas;
+	    }).then(function () {
+	      return _this.prixTotal = _this.getPrixTotal();
+	    });
+	    this.$location = $location;
+	  }
+	
+	  //retourne la pizza de 'pizzas' avec pizzaId
+	
+	
+	  _createClass(PanierService, [{
+	    key: 'getPizzabyId',
+	    value: function getPizzabyId(pizzaId) {
+	      if (!this.pizzas) return;
+	      return this.pizzas.find(function (pizza) {
+	        return pizza.id === parseInt(pizzaId);
+	      });
+	    }
+	  }, {
+	    key: 'getPrixTotal',
+	    value: function getPrixTotal() {
+	      var _this2 = this;
+	
+	      if (!this.panier) return 0;
+	      return this.panier.reduce(function (accumulateur, item) {
+	        return accumulateur + _this2.getPizzabyId(item.id).prix * item.quantite;
+	      }, 0);
+	    }
+	  }, {
+	    key: 'getQuantiteTotale',
+	    value: function getQuantiteTotale() {
+	      if (!this.panier) return 0;
+	      return this.panier.reduce(function (accumulateur, item) {
+	        return accumulateur + item.quantite;
+	      }, 0);
+	    }
+	
+	    //repercute tout les changements du panier local sur le localStorage
+	
+	  }, {
+	    key: 'updatePanier',
+	    value: function updatePanier() {
+	      this.localStorageService.set('panier', this.panier, 'localStorage');
+	      this.prixTotal = this.getPrixTotal();
+	    }
+	  }, {
+	    key: 'supprimer',
+	    value: function supprimer(itemPanier) {
+	      var index = this.panier.indexOf(itemPanier);
+	      if (index > -1) {
+	        this.panier.splice(index, 1);
+	      }
+	      this.updatePanier();
+	    }
+	  }, {
+	    key: 'plusNbPizza',
+	    value: function plusNbPizza(itemPanier) {
+	      itemPanier.quantite++;
+	      this.updatePanier();
+	    }
+	  }, {
+	    key: 'moinsNbPizza',
+	    value: function moinsNbPizza(itemPanier) {
+	      if (itemPanier.quantite === 1) {
+	        this.supprimer(itemPanier);
+	      } else {
+	        itemPanier.quantite--;
+	      }
+	      this.updatePanier();
+	    }
+	  }, {
+	    key: 'ajouterAuStockageLocal',
+	    value: function ajouterAuStockageLocal(item) {
+	      if (!this.panier) {
+	        this.panier = [];
+	      }
+	      var index = this.panier.findIndex(function (panierItem) {
+	        return item.id === parseInt(panierItem.id);
+	      });
+	      if (index >= 0) {
+	        this.panier[index].quantite++;
+	      } else {
+	        this.panier.push({
+	          id: '' + item.id,
+	          quantite: 1
+	        });
+	      }
+	      this.updatePanier();
+	    }
+	  }]);
+
+	  return PanierService;
+	}();
+
+/***/ }),
+/* 74 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -44209,7 +44333,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _home = __webpack_require__(74);
+	var _home = __webpack_require__(75);
 	
 	var _home2 = _interopRequireDefault(_home);
 	
@@ -44251,13 +44375,13 @@
 	};
 
 /***/ }),
-/* 74 */
+/* 75 */
 /***/ (function(module, exports) {
 
 	module.exports = "<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Bienvenue à la pizzeria de DTA ! </h1>\n    <h2> Commande sur place, à emporter ou livraison à domicile ! </h2> <br><br>\n    <h1> Nos dernières pizzas :</h1>\n</div>\n\n<div class=\"col-lg-4 col-md-4 col-sm-6 col-xs-12\" ng-repeat=\"pizza in $ctrl.last3 track by $index\">\n    <div class=\"thumbnail\">\n        <a href=\"/pizzas\" class=\"link tooltip-link\" data-toggle=\"tooltip\" data-original-title=\"Pizza 4 fromages\">\n            <img class=\"derniere-pizza\" ng-src=\"{{pizza.urlImage}}\" alt=\"{{pizza.nom}}\" title=\"{{pizza.nom}}\">\n        </a>\n        <div class=\"caption\">\n            <h3> {{ pizza.nom }} </h3>\n            <p> {{ pizza.prix }} &euro;\n                <ajouter-panier item=\"pizza\" class=\"btn pull-right\"></ajouter-panier>\n            </p>\n        </div>\n    </div>\n</div>"
 
 /***/ }),
-/* 75 */
+/* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -44267,7 +44391,7 @@
 	});
 	exports.PizzaComponent = undefined;
 	
-	var _pizza = __webpack_require__(76);
+	var _pizza = __webpack_require__(77);
 	
 	var _pizza2 = _interopRequireDefault(_pizza);
 	
@@ -44288,13 +44412,13 @@
 	};
 
 /***/ }),
-/* 76 */
+/* 77 */
 /***/ (function(module, exports) {
 
 	module.exports = "<div class=\"col-sm-4 hidden-xs\">\n\t<img class=\"img-responsive\" ng-src=\"{{$ctrl.pizza.urlImage}}\">\n</div>\n\n<div class=\"col-sm-8\">\n\t{{$ctrl.pizza.nom}}\n\t{{$ctrl.pizza.prix}} &euro;\t\n</div>"
 
 /***/ }),
-/* 77 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -44306,7 +44430,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _listePizzas = __webpack_require__(78);
+	var _listePizzas = __webpack_require__(79);
 	
 	var _listePizzas2 = _interopRequireDefault(_listePizzas);
 	
@@ -44342,13 +44466,13 @@
 	};
 
 /***/ }),
-/* 78 */
+/* 79 */
 /***/ (function(module, exports) {
 
 	module.exports = "<div class=\"panel\">\n\t<div class=\"panel-heading\">\n\t\t<h1>Liste des pizzas</h1>\t\n\t</div>\n\t<div class=\"panel-body\">\n\t\t<div class=\"list-group\">\t\n\t\t\t<div  class=\"list-group-item clearfix\"  ng-repeat=\"pizza in $ctrl.pizzas\">\t\t\n\t\t\t\t<pizza pizza=\"pizza\"></pizza>\t\n\t\t\t\t<ajouter-panier item=\"pizza\"></ajouter-panier>\t\t\t\t\n\t\t\t</div>\n\t\t</div>\n\t</div>\n</div>\n\n"
 
 /***/ }),
-/* 79 */
+/* 80 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -44360,7 +44484,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _commande = __webpack_require__(80);
+	var _commande = __webpack_require__(81);
 	
 	var _commande2 = _interopRequireDefault(_commande);
 	
@@ -44407,13 +44531,13 @@
 	};
 
 /***/ }),
-/* 80 */
+/* 81 */
 /***/ (function(module, exports) {
 
 	module.exports = "<panier></panier>\n<div class=\"container\">\n\t<div class=\"row\">\n\t\t<div class=\"col-sm-6\">\n\t\t\t<button class=\"btn btn-default btn-block\" ng-click=\"$ctrl.setCommandeType('A_EMPORTER')\">A EMPORTER</button> \n\t\t</div>\n\t\t<div class=\"col-sm-6\">\n\t\t\t<button class=\"btn btn-default btn-block\" ng-click=\"$ctrl.setCommandeType('LIVRAISON')\">LIVRAISON A DOMICILE</button>\n\t\t</div>\n\t</div>\n\t<div class=\"row\">\n\t\t<div class=\"col-sm-offset-8 col-sm-4\">\n\t\t\t<button class=\"btn btn-default btn-block\" ng-click=\"$ctrl.setCommande()\">Confirmer la commande</button> \n\t\t</div>\n\t</div>\n</div>"
 
 /***/ }),
-/* 81 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -44425,7 +44549,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _inscription = __webpack_require__(82);
+	var _inscription = __webpack_require__(83);
 	
 	var _inscription2 = _interopRequireDefault(_inscription);
 	
@@ -44470,13 +44594,13 @@
 	};
 
 /***/ }),
-/* 82 */
+/* 83 */
 /***/ (function(module, exports) {
 
 	module.exports = "<div class=\"inscription\">\n    <h1 class=\"titre-inscription\">Devenez client !</h1><br>\n    <form name=\"formInscription\" novalidate ng-submit=\"$ctrl.validerForm(formInscription)\">\n        <div name=\"divEmail\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"emailClient\">Email : </label>\n            <input id=\"emailClient\" name=\"emailClient\" ng-model=\"$ctrl.client.email\" required type=\"email\" placeholder=\"Votre email\" class=\"form-control\">\n            <p class=\"text-danger\" role=\"alert\" ng-if=\"formInscription.emailClient.$error.required \n            && formInscription.emailClient.$touched\">Veuillez rentrer un email !</p>\n            <p class=\"text-danger\" ng-if=\"formInscription.emailClient.$error.email \n            && formInscription.emailClient.$touched\">Votre email est invalide !</p>\n        </div>\n\n        <div name=\"divMdp\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"mdpClient\">Mot de passe : </label>\n            <input id=\"mdpClient\" name=\"mdpClient\" ng-model=\"$ctrl.client.motDePasse\" required type=\"password\" placeholder=\"Votre mot de passe\" class=\"form-control\">\n            <p class=\"text-danger\" ng-if=\"formInscription.mdpClient.$error.required \n            && formInscription.mdpClient.$touched\">Veuillez rentrer un mot de passe !</p>\n\n            <label for=\"confMdpClient\">Confirmation du mot de passe : </label>\n            <input id=\"confMdpClient\" name=\"confMdpClient\" ng-model=\"$ctrl.confMdp\" required type=\"password\" placeholder=\"Confirmez votre mot de passe\"\n                class=\"form-control\">\n            <p class=\"text-danger\" ng-if=\"$ctrl.client.motDePasse !== $ctrl.confMdp && formInscription.mdpClient.$touched && formInscription.confMdpClient.$touched\">Les mots de passe ne sont pas identiques !</p>\n        </div>\n\n        <div name=\"divNom\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"nomClient\">Nom : </label>\n            <input id=\"nomClient\" name=\"nomClient\" ng-model=\"$ctrl.client.nom\" type=\"text\" placeholder=\"Votre nom\" class=\"form-control\">\n        </div>\n\n        <div name=\"divPrenom\" class=\"form-group col-lg-8 col-md-8 col-sm-12 col-xs-12\">\n            <label for=\"prenomClient\">Prenom : </label>\n            <input id=\"prenomClient\" name=\"prenomClient\" ng-model=\"$ctrl.client.prenom\" type=\"text\" placeholder=\"Votre prenom\" class=\"form-control\"><br>\n            <button ng-disabled=\"formInscription.$invalid || $ctrl.client.motDePasse !== $ctrl.confMdp\" type=\"submit\" class=\"btn inscriptionBtn\">Créer un compte</button>\n        </div>\n    </form>\n</div>"
 
 /***/ }),
-/* 83 */
+/* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -44488,7 +44612,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _connexion = __webpack_require__(84);
+	var _connexion = __webpack_require__(85);
 	
 	var _connexion2 = _interopRequireDefault(_connexion);
 	
@@ -44537,13 +44661,13 @@
 	};
 
 /***/ }),
-/* 84 */
+/* 85 */
 /***/ (function(module, exports) {
 
 	module.exports = "<div class=\"inscription\">\n    <h1>Identifiez-vous !</h1><br>\n    <form name=\"formConnexion\" class=\"form-horizontal\" ng-submit=\"$ctrl.connexion()\">\n        <div class=\"form-group\">\n            <label for=\"emailInput\" class=\"col-sm-2 control-label\">Email</label>\n            <div class=\"col-sm-10\">\n                <input type=\"email\" class=\"form-control\" id=\"emailInput\" name=\"emailInput\" placeholder=\"Veuillez saisir votre adresse email\"\n                    ng-model=\"$ctrl.email\" required>\n            </div>\n        </div>\n\n        <div class=\"form-group\">\n            <label for=\"motDePasseInput\" class=\"col-sm-2 control-label\">Mot de passe</label>\n            <div class=\"col-sm-10\">\n                <input type=\"password\" class=\"form-control\" id=\"motDePasseInput\" ng-model=\"$ctrl.motDePasse\" required>\n            </div>\n        </div>\n        <div class=\"form-group\">\n            <div class=\"col-sm-offset-2 col-sm-3\">\n                <button type=\"submit\" class=\"btn inscriptionBtn\" ng-disabled=\"formInscription.$invalid\">Se connecter</button>\n            </div>\n        </div>\n    </form>\n    <div class=\"col-sm-offset-2 col-sm-3\">\n        <a href=\"/inscription\">S'inscrire</a>\n    </div>\n</div>"
 
 /***/ }),
-/* 85 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -44555,7 +44679,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _ajouterPanier = __webpack_require__(86);
+	var _ajouterPanier = __webpack_require__(87);
 	
 	var _ajouterPanier2 = _interopRequireDefault(_ajouterPanier);
 	
@@ -44564,33 +44688,17 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var controller = function () {
-	  function controller(localStorageService) {
+	  function controller(localStorageService, PanierService) {
 	    _classCallCheck(this, controller);
 	
 	    this.StockageService = localStorageService;
+	    this.ps = PanierService;
 	  }
 	
 	  _createClass(controller, [{
 	    key: 'ajouterAuStockageLocal',
 	    value: function ajouterAuStockageLocal() {
-	      var _this = this;
-	
-	      var contenuStockage = this.StockageService.get('panier', 'localStorage');
-	      if (contenuStockage === null) {
-	        contenuStockage = [];
-	      }
-	      var index = contenuStockage.findIndex(function (panierItem) {
-	        return _this.item.id === parseInt(panierItem.id);
-	      });
-	      if (index >= 0) {
-	        contenuStockage[index].quantite++;
-	      } else {
-	        contenuStockage.push({
-	          id: '' + this.item.id,
-	          quantite: 1
-	        });
-	      }
-	      this.StockageService.set('panier', contenuStockage, 'localStorage');
+	      this.ps.ajouterAuStockageLocal(this.item);
 	    }
 	  }]);
 	
@@ -44606,13 +44714,13 @@
 	};
 
 /***/ }),
-/* 86 */
+/* 87 */
 /***/ (function(module, exports) {
 
 	module.exports = "<button class=\"btn bouton\" ng-click=\"$ctrl.ajouterAuStockageLocal()\">Ajouter au panier</button>"
 
 /***/ }),
-/* 87 */
+/* 88 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -44624,7 +44732,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _panier = __webpack_require__(88);
+	var _panier = __webpack_require__(89);
 	
 	var _panier2 = _interopRequireDefault(_panier);
 	
@@ -44633,79 +44741,19 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var controller = function () {
-	  function controller(localStorageService, PizzaService, $location) {
-	    var _this = this;
-	
+	  function controller($location, PanierService, localStorageService) {
 	    _classCallCheck(this, controller);
 	
 	    this.localStorageService = localStorageService;
-	    this.PizzaService = PizzaService;
-	
+	    this.ps = PanierService;
 	    this.panier = this.localStorageService.get('panier', 'localStorage');
-	    this.pizzas = [];
-	    this.prixTotal = 0;
-	    this.PizzaService.getPizzas().then(function (pizzas) {
-	      _this.pizzas = pizzas;
-	    }).then(function () {
-	      return _this.prixTotal = _this.getPrixTotal();
-	    });
 	    this.$location = $location;
 	  }
 	
-	  //retourne la pizza de 'pizzas' avec pizzaId
-	
-	
 	  _createClass(controller, [{
-	    key: 'getPizzabyId',
-	    value: function getPizzabyId(pizzaId) {
-	      if (!this.pizzas) return;
-	      return this.pizzas.find(function (pizza) {
-	        return pizza.id === parseInt(pizzaId);
-	      });
-	    }
-	  }, {
 	    key: 'supprimer',
 	    value: function supprimer(itemPanier) {
-	      var index = this.panier.indexOf(itemPanier);
-	      if (index > -1) {
-	        this.panier.splice(index, 1);
-	      }
-	      this.updatePanier();
-	    }
-	  }, {
-	    key: 'plusNbPizza',
-	    value: function plusNbPizza(itemPanier) {
-	      itemPanier.quantite++;
-	      this.updatePanier();
-	    }
-	  }, {
-	    key: 'moinsNbPizza',
-	    value: function moinsNbPizza(itemPanier) {
-	      if (itemPanier.quantite === 1) {
-	        this.supprimer(itemPanier);
-	      } else {
-	        itemPanier.quantite--;
-	      }
-	      this.updatePanier();
-	    }
-	
-	    //repercute tout les changements du panier local sur le localStorage
-	
-	  }, {
-	    key: 'updatePanier',
-	    value: function updatePanier() {
-	      this.localStorageService.set('panier', this.panier, 'localStorage');
-	      this.prixTotal = this.getPrixTotal();
-	    }
-	  }, {
-	    key: 'getPrixTotal',
-	    value: function getPrixTotal() {
-	      var _this2 = this;
-	
-	      if (!this.panier) return 0;
-	      return this.panier.reduce(function (accumulateur, item) {
-	        return accumulateur + _this2.getPizzabyId(item.id).prix * item.quantite;
-	      }, 0);
+	      this.ps.supprimer(itemPanier);
 	    }
 	  }, {
 	    key: 'passerCommande',
@@ -44731,13 +44779,13 @@
 	};
 
 /***/ }),
-/* 88 */
+/* 89 */
 /***/ (function(module, exports) {
 
-	module.exports = "<h2>\n    Votre Panier\n</h2>\n<div class=\"table-responsive table-panier\">\n    <table class=\"table\">\n        <tr ng-repeat=\"itemPanier in $ctrl.panier\" ng-init=\"pizza = $ctrl.getPizzabyId(itemPanier.id)\">\n            <td class=\"vert-align\">\n\n                <div class=\"tooltip-panier\">\n                    <img class=\"img-panier\" src=\"{{pizza.urlImage}}\">\n                    <!-- ingredients à gérer dans le modèle\n                        <span class=\"tooltiptext-panier\">\n                        <div ng-repeat=\"ingredient in pizza.ingredients\">\n                            {{ingredient}}\n                        </div>\n                    </span>\n                    -->\n                </div>\n            </td>\n            <td class=\"vert-align\">{{ pizza.nom }}\n                <span class=\"clickable-span glyphicon glyphicon-remove\" ng-click=\"$ctrl.supprimer(itemPanier)\"></span></td>\n            <td class=\"vert-align\"> <b>{{ pizza.prix }} € </b></td>\n            <td class=\"vert-align\"> <b>x{{ itemPanier.quantite }}</b>\n                <span class=\"clickable-span glyphicon glyphicon-plus\" ng-click=\"$ctrl.plusNbPizza(itemPanier)\"></span>\n                <span class=\"clickable-span glyphicon glyphicon-minus\" ng-click=\"$ctrl.moinsNbPizza(itemPanier)\"></span></td>\n        </tr>\n    </table>\n    <div class=\"container\">\n        <div class=\"row pull-right\">\n            <table class=\"table\">\n                <tr>\n                    <td>Total :</td>\n                    <td>{{$ctrl.prixTotal}} €</td>\n                </tr>\n                <!--<tr><td>Promotion :</td><td>4€</td></tr>-->\n                <tr>\n                    <td rowspan=\"2\"><button ng-click=\"$ctrl.passerCommande()\" class=\"btn btn-success\">Passer commande</button></td>\n                </tr>\n            </table>\n        </div>\n    </div>\n</div>"
+	module.exports = "<h2>\n  Votre Panier\n</h2>\n<div class=\"table-responsive table-panier\">\n  <table class=\"table\">\n    <thead>\n      <tr>\n        <td></td>\n        <td>Nom</td>\n        <td>Prix unitaire</td>\n        <td>Quantité</td>\n      </tr>\n    </thead>\n    <tbody>\n      <tr ng-repeat=\"itemPanier in $ctrl.ps.panier\"\n          ng-init=\"pizza = $ctrl.ps.getPizzabyId(itemPanier.id)\">\n        <td class=\"vert-align\">\n\n          <div class=\"tooltip-panier\">\n            <img class=\"img-panier\"\n                 src=\"{{pizza.urlImage}}\">\n            <!-- ingredients à gérer dans le modèle\n                          <span class=\"tooltiptext-panier\">\n                          <div ng-repeat=\"ingredient in pizza.ingredients\">\n                              {{ingredient}}\n                          </div>\n                      </span>\n                      -->\n          </div>\n        </td>\n        <td class=\"vert-align\">{{ pizza.nom }}\n          <span class=\"clickable-span glyphicon glyphicon-remove\"\n                ng-click=\"$ctrl.supprimer(itemPanier)\"></span></td>\n        <td class=\"vert-align\"> <b>{{ pizza.prix }} € </b></td>\n        <td class=\"vert-align\"> <b>x{{ itemPanier.quantite }}</b>\n          <span class=\"clickable-span glyphicon glyphicon-plus\"\n                ng-click=\"$ctrl.ps.plusNbPizza(itemPanier)\"></span>\n          <span class=\"clickable-span glyphicon glyphicon-minus\"\n                ng-click=\"$ctrl.ps.moinsNbPizza(itemPanier)\"></span></td>\n      </tr>\n    </tbody>\n  </table>\n  <div class=\"container\">\n    <div class=\"row pull-right\">\n      <table class=\"table\">\n        <tbody>\n          <tr>\n            <td>Total :</td>\n            <td>{{$ctrl.ps.getPrixTotal()}} €</td>\n          </tr>\n          <!--<tr><td>Promotion :</td><td>4€</td></tr>-->\n          <tr>\n            <td rowspan=\"2\"><button ng-click=\"$ctrl.passerCommande()\"\n                      class=\"btn btn-success\">Passer commande</button></td>\n          </tr>\n        </tbody>\n      </table>\n    </div>\n  </div>\n</div>\n"
 
 /***/ }),
-/* 89 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -44749,7 +44797,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _navbar = __webpack_require__(90);
+	var _navbar = __webpack_require__(91);
 	
 	var _navbar2 = _interopRequireDefault(_navbar);
 	
@@ -44789,13 +44837,13 @@
 	};
 
 /***/ }),
-/* 90 */
+/* 91 */
 /***/ (function(module, exports) {
 
 	module.exports = "<nav class='navbar nav-pills navbar-fixed-top'>\n\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\"\n              class=\"navbar-toggle collapsed\"\n              data-toggle=\"collapse\"\n              data-target=\"#navbar\"\n              aria-expanded=\"false\"\n              aria-controls=\"navbar\">\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                    </button>\n      <a href=\"/\">\n        <img class=\"logo\"\n             src=\"./img/pizza.png\">\n      </a>\n    </div>\n\n    <div id=\"navbar\"\n         class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li>\n          <a href=\"/\">Home</a>\n        </li>\n        <li>\n          <a href=\"/pizzas\"> Pizzas </a>\n        </li>\n\n      </ul>\n      <ul class=\"nav navbar-nav navbar-right\">\n        <li ng-if=\"$ctrl.getConnectedClient()\">\n          <a href=\"/compte\"> Mon Compte</a>\n        </li>\n\n        <li><a href=\"/panier\">Mon Panier\n        <panier-indicateur></panier-indicateur></a>\n        </li>\n\n        <li style=\"background:gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href\n             ng-click=\"$ctrl.connecter()\"\n             class=\"login\">Connexion</a>\n        </li>\n\n        <li style=\"background: gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href=\"/inscription\"\n             class=\"login\">Inscription</a>\n        </li>\n\n        <li style=\"background: gold\"\n            ng-if=\"$ctrl.getConnectedClient()\">\n          <a href=\"\"\n             class=\"login\">Déconnexion</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n</nav>\n"
 
 /***/ }),
-/* 91 */
+/* 92 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -44807,7 +44855,7 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _monCompte = __webpack_require__(92);
+	var _monCompte = __webpack_require__(93);
 	
 	var _monCompte2 = _interopRequireDefault(_monCompte);
 	
@@ -44852,13 +44900,13 @@
 	};
 
 /***/ }),
-/* 92 */
+/* 93 */
 /***/ (function(module, exports) {
 
 	module.exports = "<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Informations personnelles </h1>\n    <button class=\"btn pull-right bouton\" ng-click=$ctrl.modifications() ng-if=\"!$ctrl.modif\"> Modifier </button>\n    <button class=\"btn pull-right bouton\" ng-click=$ctrl.modifications() ng-if=\"$ctrl.modif\"> Annuler </button>\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Nom :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.nom}}\n        <p ng-if=\"!$ctrl.clientConnecte.nom\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divNom\" class=\"form-group\">\n                <input id=\"nomClient\" name=\"nomClient\" ng-model=\"$ctrl.clientConnecte.nom\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n    </div>\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Prénom :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.prenom}}\n        <p ng-if=\"!$ctrl.clientConnecte.prenom\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divPrenom\" class=\"form-group\">\n                <input id=\"prenomClient\" name=\"prenomClient\" ng-model=\"$ctrl.clientConnecte.prenom\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n    </div>\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Email :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.email}}\n        <p ng-if=\"!$ctrl.clientConnecte.email\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divEmail\" class=\"form-group\">\n                <input id=\"emailClient\" name=\"emailClient\" required ng-model=\"$ctrl.clientConnecte.email\" type=\"email\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"formMAJ.emailClient.$error.email \n                    && formMAJ.emailClient.$touched\">Votre email est invalide !</p>\n                <p class=\"text-danger\" role=\"alert\" ng-if=\"formMAJ.emailClient.$error.required\">Veuillez rentrer un email !</p>\n            </div>\n        </form>\n    </div>\n\n    <!--<div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Mot de passe :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        ******\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divEmail\" class=\"form-group\">\n                <input id=\"mdpClient\" name=\"mdpClient\" ng-model=\"$ctrl.clientConnecte.motDePasse\" type=\"password\" value=\"Votre mot de passe\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"formInscription.mdpClient.$error.required \n                        && formInscription.mdpClient.$touched\">Veuillez rentrer un mot de passe !</p>\n\n                <input id=\"confMdpClient\" name=\"confMdpClient\" ng-model=\"$ctrl.confMdp\" type=\"password\" value=\"Confirmez votre mot de passe\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"$ctrl.clientConnecte.motDePasse !== $ctrl.confMdp && formInscription.mdpClient.$touched && formInscription.confMdpClient.$touched\">Les mots de passe ne sont pas identiques !</p>\n            </div>\n        </form>\n    </div>-->\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Adresse :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.adresse}}\n        <p ng-if=\"!$ctrl.clientConnecte.adresse\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divAdresse\" class=\"form-group\">\n                <input id=\"adresseClient\" name=\"adresseClient\" ng-model=\"$ctrl.clientConnecte.adresse\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n        <button ng-disabled=\"formMAJ.$invalid\" type=\"submit\" class=\"btn bouton\" ng-click=\"$ctrl.soumissionFormulaire()\"> Modifier Informations </button>\n    </div>\n\n</div>\n\n</div>\n\n\n<!--<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Commandes </h1>\n    <table class=\"table\">\n        <thead>\n            <tr>\n                <th> Date </th>\n                <th class=\"hidden-xs\"> N° de commande </th>\n                <th class=\"hidden-xs\"> Statut </th>\n                <th class=\"hidden-xs\"> Prix </th>\n                <th> Détails </th>\n            </tr>\n        </thead>\n        <tbody>\n            <<tr ng-repeat=\"commande from $ctrl.commandes\">\n                <td> commande.dateCommande </td>\n                <td class=\"hidden-xs\"> commande.numeroCommande </td>\n                <td class=\"hidden-xs\"> commande.statut </td>\n                <td class=\"hidden-xs\"> commande.prix </td>\n                <td> <a href=\"/commande/{{commande.id}}\" class=\"btn pull-right dernieres-pizzas\" role=\"button\"> Ajouter au panier </a> </td>x\n            </tr>-->\n</tbody>\n</div>"
 
 /***/ }),
-/* 93 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -44868,9 +44916,7 @@
 	});
 	exports.PanierIndicateurComponent = undefined;
 	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _panierIndicateur = __webpack_require__(94);
+	var _panierIndicateur = __webpack_require__(95);
 	
 	var _panierIndicateur2 = _interopRequireDefault(_panierIndicateur);
 	
@@ -44878,31 +44924,11 @@
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var controller = function () {
-	  function controller(localStorageService) {
-	    _classCallCheck(this, controller);
+	var controller = function controller(PanierService) {
+	  _classCallCheck(this, controller);
 	
-	    this.localStorageService = localStorageService;
-	
-	    this.panier = this.localStorageService.get('panier', 'localStorage');
-	    this.pizzas = [];
-	    this.quantiteTotale = this.getQuantiteTotale();
-	    this.prixTotal = 0;
-	  }
-	
-	  _createClass(controller, [{
-	    key: 'getQuantiteTotale',
-	    value: function getQuantiteTotale() {
-	      var _this = this;
-	
-	      return this.panier ? 0 : this.panier.reduce(function (accumulateur, item) {
-	        return accumulateur + _this.panier.quantite;
-	      }, 0);
-	    }
-	  }]);
-	
-	  return controller;
-	}();
+	  this.ps = PanierService;
+	};
 	
 	;
 	
@@ -44913,10 +44939,10 @@
 	};
 
 /***/ }),
-/* 94 */
+/* 95 */
 /***/ (function(module, exports) {
 
-	module.exports = "( {{$ctrl.quantiteTotale}} | {{$ctrl.prixTotal}} € )\n"
+	module.exports = "( {{$ctrl.ps.getQuantiteTotale()}} | {{$ctrl.ps.getPrixTotal()}} € )"
 
 /***/ })
 /******/ ]);
