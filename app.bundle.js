@@ -35341,6 +35341,7 @@
 	    this.$http = $http;
 	    this.$q = $q;
 	    this.API_URL = API_URL;
+	    this.lssPizzas = this.localStorageService.get('pizzas');
 	  }
 	
 	  _createClass(PizzaService, [{
@@ -35348,12 +35349,10 @@
 	    value: function getPizzas() {
 	      var _this = this;
 	
-	      if (!this.localStorageService.get('pizzas')) {
-	        this.$http.get(this.API_URL + '/pizzas').then(function (r) {
-	          return _this.localStorageService.set('pizzas', r.data, 'localStorage');
-	        });
-	      }
-	      return this.$q.resolve(this.localStorageService.get('pizzas', 'localStorage'));
+	      return !this.lssPizzas ? this.$http.get(this.API_URL + '/pizzas').then(function (r) {
+	        _this.localStorageService.set('pizzas', r.data);
+	        return r.data;
+	      }) : this.$q.resolve(this.lssPizzas);
 	    }
 	  }]);
 
@@ -44343,9 +44342,11 @@
 	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	exports.HomeComponent = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _home = __webpack_require__(75);
 	
@@ -44355,29 +44356,38 @@
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var controller = function controller(PizzaService) {
-	    var _this = this;
-	
+	var controller = function () {
+	  function controller(PizzaService) {
 	    _classCallCheck(this, controller);
 	
 	    this.PizzaService = PizzaService;
+	  }
 	
-	    this.pizzas = this.PizzaService.getPizzas().then(function (pizzas) {
+	  _createClass(controller, [{
+	    key: "$onInit",
+	    value: function $onInit() {
+	      var _this = this;
+	
+	      return this.pizzas = this.PizzaService.getPizzas().then(function (pizzas) {
 	        _this.pizzas = pizzas;
-	    });
-	};
+	      });
+	    }
+	  }]);
+	
+	  return controller;
+	}();
 	
 	var HomeComponent = exports.HomeComponent = {
-	    bindings: {},
-	    template: _home2.default,
-	    controller: controller
+	  bindings: {},
+	  template: _home2.default,
+	  controller: controller
 	};
 
 /***/ }),
 /* 75 */
 /***/ (function(module, exports) {
 
-	module.exports = "<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Bienvenue à la pizzeria de DTA ! </h1>\n    <h2> Commande sur place, à emporter ou livraison à domicile ! </h2> <br><br>\n    <h1> Nos 3 dernières pizzas :</h1>\n</div>\n\n<div class=\"col-lg-4 col-md-4 col-sm-6 col-xs-12\" ng-repeat=\"pizza in $ctrl.pizzas|limitTo:3 track by $index\">\n    <pizza pizza=\"pizza\"></pizza>\n    <ajouter-panier item=\"pizza\"></ajouter-panier>\n</div>"
+	module.exports = "<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n  <div class=\"jumbotron\">\n    <h1>Bienvenue à la pizzeria de DTA</h1>\n    <p>Commandez sur place, à emporter ou faîtes-vous livrer à domicile !</p>\n  </div>\n  <h2> Nos 3 dernières pizzas :</h2>\n</div>\n\n<div class=\"col-lg-4 col-md-4 col-sm-6 col-xs-12\"\n     ng-repeat=\"pizza in $ctrl.pizzas |limitTo:3 track by $index\">\n  <pizza pizza=\"pizza\"></pizza>\n  <ajouter-panier item=\"pizza\"></ajouter-panier>\n</div>\n"
 
 /***/ }),
 /* 76 */
@@ -44414,7 +44424,7 @@
 /* 77 */
 /***/ (function(module, exports) {
 
-	module.exports = "<div class=\"well well-lg weel-pizza\" data-toggle=\"modal\" data-target=\"#myModal{{$ctrl.pizza.id}}\">\n\t<img class=\"img-responsive center-block\" src=\"{{$ctrl.pizza.urlImage}}\">\n\t<h2>{{$ctrl.pizza.nom}}</h2>\n\t<p>{{$ctrl.pizza.prix}} &euro;</p>\n</div>\n<!-- Modal -->\n<div class=\"modal fade\" id=\"myModal{{$ctrl.pizza.id}}\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"myModalLabel\">\n\t<div class=\"modal-dialog\" role=\"document\">\n\t\t<div class=\"modal-content\">\n\t\t<div class=\"modal-header\">\n\t\t\t<button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n\t\t\t<h4 class=\"modal-title\" id=\"myModalLabel\">{{$ctrl.pizza.nom}}</h4>\n\t\t</div>\n\t\t<div class=\"modal-body\">\n\t\t\t<img class=\"img-responsive\" src=\"{{$ctrl.pizza.urlImage}}\">\n\t\t\t{{$ctrl.pizza.prix}} &euro;\n\t\t</div>\n\n\t\t<!-- Table -->\n\t\t<table class=\"table table-striped\">\n\t\t\t<tr><th>Ingrédients</th></tr>\n\t\t\t<tr ng-repeat=\"ingredient in $ctrl.pizza.listeIngredients\"><td>{{ingredient.nom}}</td></tr>\n\t\t</table>\n\t\t<div class=\"modal-footer\">\n\t\t\t<ajouter-panier item=\"$ctrl.pizza\"></ajouter-panier>\n\t\t</div>\n\t\t</div>\n\t</div>\n</div>"
+	module.exports = "<div class=\"well well-lg weel-pizza\"\n     data-toggle=\"modal\"\n     data-target=\"#myModal{{$ctrl.pizza.id}}\">\n  <img class=\"img-responsive center-block\"\n       src=\"{{$ctrl.pizza.urlImage}}\">\n  <h2>{{$ctrl.pizza.nom}}</h2>\n  <p>{{$ctrl.pizza.prix}} &euro;</p>\n</div>\n<!-- Modal -->\n<div class=\"modal fade\"\n     id=\"myModal{{$ctrl.pizza.id}}\"\n     tabindex=\"-1\"\n     role=\"dialog\"\n     aria-labelledby=\"myModalLabel\">\n  <div class=\"modal-dialog\"\n       role=\"document\">\n    <div class=\"modal-content\">\n      <div class=\"modal-header\">\n        <button type=\"button\"\n                class=\"close\"\n                data-dismiss=\"modal\"\n                aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n        <h4 class=\"modal-title\"\n            id=\"myModalLabel\">{{$ctrl.pizza.nom}}</h4>\n      </div>\n\n      <!-- Table -->\n      <table class=\"table table-striped\">\n        <tr>\n          <th>Ingrédients</th>\n        </tr>\n        <tr ng-repeat=\"ingredient in $ctrl.pizza.listeIngredients\">\n          <td>{{ingredient.nom}}</td>\n        </tr>\n      </table>\n      <div class=\"modal-footer\">\n        <ajouter-panier item=\"$ctrl.pizza\"></ajouter-panier>\n      </div>\n    </div>\n  </div>\n</div>\n"
 
 /***/ }),
 /* 78 */
@@ -44423,7 +44433,7 @@
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	exports.ListePizzasComponent = undefined;
 	
@@ -44438,41 +44448,41 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var controller = function () {
-	    function controller(PizzaService) {
-	        _classCallCheck(this, controller);
+	  function controller(PizzaService) {
+	    _classCallCheck(this, controller);
 	
-	        this.PizzaService = PizzaService;
+	    this.PizzaService = PizzaService;
+	  }
+	
+	  _createClass(controller, [{
+	    key: '$onInit',
+	    value: function $onInit() {
+	      var _this = this;
+	
+	      return this.pizzas = this.PizzaService.getPizzas().then(function (pizzas) {
+	        _this.pizzas = pizzas;
+	        _this.pizzasCat = pizzas;
+	      });
 	    }
+	  }, {
+	    key: 'setCategorie',
+	    value: function setCategorie(cat) {
+	      this.pizzasCat = this.pizzas;
+	      this.categorie = cat;
+	      if (cat == null) return this.pizzasCat;
+	      return this.pizzasCat = this.pizzasCat.filter(function (pizza) {
+	        if (pizza.categorie === cat) return pizza;
+	      });
+	    }
+	  }]);
 	
-	    _createClass(controller, [{
-	        key: '$onInit',
-	        value: function $onInit() {
-	            var _this = this;
-	
-	            return this.pizzas = this.PizzaService.getPizzas().then(function (pizzas) {
-	                _this.pizzas = pizzas;
-	                _this.pizzasCat = pizzas;
-	            });
-	        }
-	    }, {
-	        key: 'setCategorie',
-	        value: function setCategorie(cat) {
-	            this.pizzasCat = this.pizzas;
-	            this.categorie = cat;
-	            if (cat == null) return this.pizzasCat;
-	            return this.pizzasCat = this.pizzasCat.filter(function (pizza) {
-	                if (pizza.categorie === cat) return pizza;
-	            });
-	        }
-	    }]);
-	
-	    return controller;
+	  return controller;
 	}();
 	
 	var ListePizzasComponent = exports.ListePizzasComponent = {
-	    bindings: {},
-	    template: _listePizzas2.default,
-	    controller: controller
+	  bindings: {},
+	  template: _listePizzas2.default,
+	  controller: controller
 	};
 
 /***/ }),
@@ -44861,7 +44871,7 @@
 /* 91 */
 /***/ (function(module, exports) {
 
-	module.exports = "<nav class='navbar nav-pills navbar-fixed-top'>\n\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\"\n              class=\"navbar-toggle collapsed\"\n              data-toggle=\"collapse\"\n              data-target=\"#navbar\"\n              aria-expanded=\"false\"\n              aria-controls=\"navbar\">\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                    </button>\n      <a href=\"/\">\n        <img class=\"logo\"\n             src=\"./img/pizza.png\">\n      </a>\n    </div>\n\n    <div id=\"navbar\"\n         class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li>\n          <a href=\"/\">Home</a>\n        </li>\n        <li>\n          <a href=\"/pizzas\"> Pizzas </a>\n        </li>\n\n      </ul>\n      <ul class=\"nav navbar-nav navbar-right\">\n        <li ng-if=\"$ctrl.getConnectedClient()\">\n          <a href=\"/compte\"> Mon Compte</a>\n        </li>\n\n        <li><a href=\"/panier\">Mon Panier\n        <panier-indicateur></panier-indicateur></a>\n        </li>\n\n        <li style=\"background:gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href\n             ng-click=\"$ctrl.connecter()\"\n             class=\"login\">Connexion</a>\n        </li>\n\n        <li style=\"background: gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href=\"/inscription\"\n             class=\"login\">Inscription</a>\n        </li>\n\n        <li style=\"background: gold\"\n            ng-if=\"$ctrl.getConnectedClient()\">\n          <a href=\"\"\n             class=\"login\">Déconnexion</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n</nav>\n"
+	module.exports = "<nav class='navbar nav-pills navbar-fixed-top'>\n\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\"\n              class=\"navbar-toggle collapsed\"\n              data-toggle=\"collapse\"\n              data-target=\"#navbar\"\n              aria-expanded=\"false\"\n              aria-controls=\"navbar\">\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                    </button>\n      <a href=\"/\">\n        <img class=\"logo\"\n             src=\"./img/pizza.png\">\n      </a>\n    </div>\n\n    <div id=\"navbar\"\n         class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li>\n          <a href=\"/\">Accueil</a>\n        </li>\n        <li>\n          <a href=\"/pizzas\"> Pizzas </a>\n        </li>\n\n      </ul>\n      <ul class=\"nav navbar-nav navbar-right\">\n        <li ng-if=\"$ctrl.getConnectedClient()\">\n          <a href=\"/compte\"> Mon Compte</a>\n        </li>\n\n        <li><a href=\"/panier\">Mon Panier\n        <panier-indicateur></panier-indicateur></a>\n        </li>\n\n        <li style=\"background:gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href\n             ng-click=\"$ctrl.connecter()\"\n             class=\"login\">Connexion</a>\n        </li>\n\n        <li style=\"background: gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href=\"/inscription\"\n             class=\"login\">Inscription</a>\n        </li>\n\n        <li style=\"background: gold\"\n            ng-if=\"$ctrl.getConnectedClient()\">\n          <a href=\"\"\n             class=\"login\">Déconnexion</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n</nav>\n"
 
 /***/ }),
 /* 92 */
