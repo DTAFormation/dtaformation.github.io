@@ -84,13 +84,18 @@
 	
 	var _monCompte = __webpack_require__(91);
 	
+	var _panierIndicateur = __webpack_require__(93);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	/* beautify preserve:end */
+	
+	/* beautify preserve:start */
 	_angular2.default.module('pizzeria', [_angularRoute2.default, 'LocalStorageModule']).value('API_URL', ("https://app-b325c1a6-237a-4e11-bdde-39f93eee7f51.cleverapps.io")).config(_routes.routes).config(function ($routeProvider, $locationProvider) {
-	    $locationProvider.html5Mode(true);
+	  $locationProvider.html5Mode(true);
 	}).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
-	    localStorageServiceProvider.setPrefix('pizzeriaLS');
-	}]).service('PizzaService', _pizza.PizzaService).service('CommandeService', _commande.CommandeService).service('ClientService', _client.ClientService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscription', _inscription.InscriptionComponent).component('connexion', _connexion.ConnexionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent).component('monCompte', _monCompte.MonCompteComponent).component('commande', _commande2.CommandeComponent);
+	  localStorageServiceProvider.setPrefix('pizzeriaLS');
+	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscriptionComponent', _inscription.InscriptionComponent).component('connexion', _connexion.ConnexionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent).component('monCompte', _monCompte.MonCompteComponent).component('panierIndicateur', _panierIndicateur.PanierIndicateurComponent);
 
 /***/ }),
 /* 1 */
@@ -35318,7 +35323,7 @@
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-		value: true
+	  value: true
 	});
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -35326,30 +35331,30 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var PizzaService = exports.PizzaService = function () {
-		function PizzaService($http, localStorageService, $q, API_URL) {
-			_classCallCheck(this, PizzaService);
+	  function PizzaService($http, localStorageService, $q, API_URL) {
+	    _classCallCheck(this, PizzaService);
 	
-			this.localStorageService = localStorageService;
-			this.$http = $http;
-			this.$q = $q;
-			this.API_URL = API_URL;
-		}
+	    this.localStorageService = localStorageService;
+	    this.$http = $http;
+	    this.$q = $q;
+	    this.API_URL = API_URL;
+	  }
 	
-		_createClass(PizzaService, [{
-			key: 'getPizzas',
-			value: function getPizzas() {
-				var _this = this;
+	  _createClass(PizzaService, [{
+	    key: 'getPizzas',
+	    value: function getPizzas() {
+	      var _this = this;
 	
-				if (!this.localStorageService.get('pizzas')) {
-					this.$http.get(this.API_URL + '/pizzas').then(function (r) {
-						return _this.localStorageService.set('pizzas', r.data, 'localStorage');
-					});
-				}
-				return this.$q.resolve(this.localStorageService.get('pizzas', 'localStorage'));
-			}
-		}]);
+	      if (!this.localStorageService.get('pizzas')) {
+	        this.$http.get(this.API_URL + '/pizzas').then(function (r) {
+	          return _this.localStorageService.set('pizzas', r.data, 'localStorage');
+	        });
+	      }
+	      return this.$q.resolve(this.localStorageService.get('pizzas', 'localStorage'));
+	    }
+	  }]);
 
-		return PizzaService;
+	  return PizzaService;
 	}();
 
 /***/ }),
@@ -44544,7 +44549,7 @@
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	exports.AjouterPanierComponent = undefined;
 	
@@ -44559,43 +44564,45 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var controller = function () {
-	    function controller(localStorageService) {
-	        _classCallCheck(this, controller);
+	  function controller(localStorageService) {
+	    _classCallCheck(this, controller);
 	
-	        this.StockageService = localStorageService;
+	    this.StockageService = localStorageService;
+	  }
+	
+	  _createClass(controller, [{
+	    key: 'ajouterAuStockageLocal',
+	    value: function ajouterAuStockageLocal() {
+	      var _this = this;
+	
+	      var contenuStockage = this.StockageService.get('panier', 'localStorage');
+	      if (contenuStockage === null) {
+	        contenuStockage = [];
+	      }
+	      var index = contenuStockage.findIndex(function (panierItem) {
+	        return _this.item.id === parseInt(panierItem.id);
+	      });
+	      if (index >= 0) {
+	        contenuStockage[index].quantite++;
+	      } else {
+	        contenuStockage.push({
+	          id: '' + this.item.id,
+	          quantite: 1
+	        });
+	      }
+	      this.StockageService.set('panier', contenuStockage, 'localStorage');
 	    }
+	  }]);
 	
-	    _createClass(controller, [{
-	        key: 'ajouterAuStockageLocal',
-	        value: function ajouterAuStockageLocal() {
-	            var _this = this;
-	
-	            var contenuStockage = this.StockageService.get('panier', 'localStorage');
-	            if (contenuStockage === null) {
-	                contenuStockage = [];
-	            }
-	
-	            var index = contenuStockage.findIndex(function (panierItem) {
-	                return _this.item.id === parseInt(panierItem.id);
-	            });
-	            if (index >= 0) {
-	                contenuStockage[index].quantite++;
-	            } else {
-	                contenuStockage.push({ id: '' + this.item.id, quantite: 1 });
-	            }
-	            this.StockageService.set('panier', contenuStockage, 'localStorage');
-	        }
-	    }]);
-	
-	    return controller;
+	  return controller;
 	}();
 	
 	var AjouterPanierComponent = exports.AjouterPanierComponent = {
-	    bindings: {
-	        item: '<'
-	    },
-	    controller: controller,
-	    template: _ajouterPanier2.default
+	  bindings: {
+	    item: '<'
+	  },
+	  controller: controller,
+	  template: _ajouterPanier2.default
 	};
 
 /***/ }),
@@ -44611,7 +44618,7 @@
 	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	exports.PanierComponent = undefined;
 	
@@ -44626,100 +44633,101 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var controller = function () {
-	    function controller(localStorageService, PizzaService, $location) {
-	        var _this = this;
+	  function controller(localStorageService, PizzaService, $location) {
+	    var _this = this;
 	
-	        _classCallCheck(this, controller);
+	    _classCallCheck(this, controller);
 	
-	        this.localStorageService = localStorageService;
-	        this.PizzaService = PizzaService;
+	    this.localStorageService = localStorageService;
+	    this.PizzaService = PizzaService;
 	
-	        this.panier = this.localStorageService.get('panier', 'localStorage');
-	        this.pizzas = [];
-	        this.prixTotal = 0;
-	        this.PizzaService.getPizzas().then(function (pizzas) {
-	            _this.pizzas = pizzas;
-	        }).then(function () {
-	            return _this.prixTotal = _this.getPrixTotal();
-	        });
-	        this.$location = $location;
+	    this.panier = this.localStorageService.get('panier', 'localStorage');
+	    this.pizzas = [];
+	    this.prixTotal = 0;
+	    this.PizzaService.getPizzas().then(function (pizzas) {
+	      _this.pizzas = pizzas;
+	    }).then(function () {
+	      return _this.prixTotal = _this.getPrixTotal();
+	    });
+	    this.$location = $location;
+	  }
+	
+	  //retourne la pizza de 'pizzas' avec pizzaId
+	
+	
+	  _createClass(controller, [{
+	    key: 'getPizzabyId',
+	    value: function getPizzabyId(pizzaId) {
+	      if (!this.pizzas) return;
+	      return this.pizzas.find(function (pizza) {
+	        return pizza.id === parseInt(pizzaId);
+	      });
+	    }
+	  }, {
+	    key: 'supprimer',
+	    value: function supprimer(itemPanier) {
+	      var index = this.panier.indexOf(itemPanier);
+	      if (index > -1) {
+	        this.panier.splice(index, 1);
+	      }
+	      this.updatePanier();
+	    }
+	  }, {
+	    key: 'plusNbPizza',
+	    value: function plusNbPizza(itemPanier) {
+	      itemPanier.quantite++;
+	      this.updatePanier();
+	    }
+	  }, {
+	    key: 'moinsNbPizza',
+	    value: function moinsNbPizza(itemPanier) {
+	      if (itemPanier.quantite === 1) {
+	        this.supprimer(itemPanier);
+	      } else {
+	        itemPanier.quantite--;
+	      }
+	      this.updatePanier();
 	    }
 	
-	    //retourne la pizza de 'pizzas' avec pizzaId
+	    //repercute tout les changements du panier local sur le localStorage
 	
+	  }, {
+	    key: 'updatePanier',
+	    value: function updatePanier() {
+	      this.localStorageService.set('panier', this.panier, 'localStorage');
+	      this.prixTotal = this.getPrixTotal();
+	    }
+	  }, {
+	    key: 'getPrixTotal',
+	    value: function getPrixTotal() {
+	      var _this2 = this;
 	
-	    _createClass(controller, [{
-	        key: 'getPizzabyId',
-	        value: function getPizzabyId(pizzaId) {
-	            return this.pizzas.find(function (pizza) {
-	                return pizza.id === parseInt(pizzaId);
-	            });
-	        }
-	    }, {
-	        key: 'supprimer',
-	        value: function supprimer(itemPanier) {
-	            var index = this.panier.indexOf(itemPanier);
-	            if (index > -1) {
-	                this.panier.splice(index, 1);
-	            }
-	            this.updatePanier();
-	        }
-	    }, {
-	        key: 'plusNbPizza',
-	        value: function plusNbPizza(itemPanier) {
-	            itemPanier.quantite++;
-	            this.updatePanier();
-	        }
-	    }, {
-	        key: 'moinsNbPizza',
-	        value: function moinsNbPizza(itemPanier) {
-	            if (itemPanier.quantite === 1) {
-	                this.supprimer(itemPanier);
-	            } else {
-	                itemPanier.quantite--;
-	            }
-	            this.updatePanier();
-	        }
+	      if (!this.panier) return 0;
+	      return this.panier.reduce(function (accumulateur, item) {
+	        return accumulateur + _this2.getPizzabyId(item.id).prix * item.quantite;
+	      }, 0);
+	    }
+	  }, {
+	    key: 'passerCommande',
+	    value: function passerCommande() {
+	      var utilisateur = this.localStorageService.get('utilisateur', 'sessionStorage');
+	      if (utilisateur) {
+	        console.log('hello');
+	        this.$location.path('/commande');
+	      } else {
+	        this.localStorageService.set('pageRedirectionConnexion', this.$location.path(), 'sessionStorage');
+	        this.$location.path('/connexion');
+	      }
+	    }
+	  }]);
 	
-	        //repercute tout les changements du panier local sur le localStorage
-	
-	    }, {
-	        key: 'updatePanier',
-	        value: function updatePanier() {
-	            this.localStorageService.set('panier', this.panier, 'localStorage');
-	            this.prixTotal = this.getPrixTotal();
-	        }
-	    }, {
-	        key: 'getPrixTotal',
-	        value: function getPrixTotal() {
-	            var _this2 = this;
-	
-	            if (this.panier === null) return 0;
-	            return this.panier.reduce(function (accumulateur, item) {
-	                return accumulateur + _this2.getPizzabyId(item.id).prix * item.quantite;
-	            }, 0);
-	        }
-	    }, {
-	        key: 'passerCommande',
-	        value: function passerCommande() {
-	            var utilisateur = this.localStorageService.get('utilisateur', 'sessionStorage');
-	            if (utilisateur) {
-	                console.log('hello');
-	                this.$location.path('/commande');
-	            } else {
-	                this.localStorageService.set('pageRedirectionConnexion', this.$location.path(), 'sessionStorage');
-	                this.$location.path('/connexion');
-	            }
-	        }
-	    }]);
-	
-	    return controller;
+	  return controller;
 	}();
 	
 	var PanierComponent = exports.PanierComponent = {
-	    bindings: {},
-	    template: _panier2.default,
-	    controller: controller
+	  bindings: {},
+	  template: _panier2.default,
+	  controller: controller
 	};
 
 /***/ }),
@@ -44732,10 +44740,10 @@
 /* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	exports.NavbarComponent = undefined;
 	
@@ -44750,41 +44758,41 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var controller = function () {
-	    function controller(localStorageService, $location, ClientService) {
-	        _classCallCheck(this, controller);
+	  function controller(localStorageService, $location, ClientService) {
+	    _classCallCheck(this, controller);
 	
-	        this.ClientService = ClientService;
-	        this.stockageService = localStorageService;
-	        this.$location = $location;
+	    this.ClientService = ClientService;
+	    this.stockageService = localStorageService;
+	    this.$location = $location;
+	  }
+	
+	  _createClass(controller, [{
+	    key: 'getConnectedClient',
+	    value: function getConnectedClient() {
+	      return parseInt(this.stockageService.get('utilisateur', 'sessionStorage'));
 	    }
+	  }, {
+	    key: 'connecter',
+	    value: function connecter() {
+	      this.stockageService.set('pageRedirectionConnexion', this.$location.path(), 'sessionStorage');
+	      this.$location.path('/connexion');
+	    }
+	  }]);
 	
-	    _createClass(controller, [{
-	        key: "getConnectedClient",
-	        value: function getConnectedClient() {
-	            return parseInt(this.stockageService.get('utilisateur', "sessionStorage"));
-	        }
-	    }, {
-	        key: "connecter",
-	        value: function connecter() {
-	            this.stockageService.set('pageRedirectionConnexion', this.$location.path(), 'sessionStorage');
-	            this.$location.path('/connexion');
-	        }
-	    }]);
-	
-	    return controller;
+	  return controller;
 	}();
 	
 	var NavbarComponent = exports.NavbarComponent = {
-	    bindings: {},
-	    controller: controller,
-	    template: _navbar2.default
+	  bindings: {},
+	  controller: controller,
+	  template: _navbar2.default
 	};
 
 /***/ }),
 /* 90 */
 /***/ (function(module, exports) {
 
-	module.exports = "<nav class='navbar nav-pills navbar-fixed-top'>\n\n    <div class=\"container-fluid\">\n        <div class=\"navbar-header\">\n            <button type=\"button\" class=\"navbar-toggle collapsed\" data-toggle=\"collapse\" data-target=\"#navbar\" aria-expanded=\"false\" aria-controls=\"navbar\">\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                    </button>\n            <a href=\"/\">\n                <img class=\"logo\" src=\"./img/pizza.png\">\n            </a>\n        </div>\n\n        <div id=\"navbar\" class=\"navbar-collapse collapse\">\n            <ul class=\"nav navbar-nav\">\n                <li>\n                    <a href=\"/\">Home</a>\n                </li>\n                <li>\n                    <a href=\"/pizzas\"> Pizzas </a>\n                </li>\n\n            </ul>\n            <ul class=\"nav navbar-nav navbar-right\">\n                <li ng-if=\"$ctrl.getConnectedClient()\">\n                    <a href=\"/compte\"> Mon Compte</a>\n                </li>\n\n                <li><a href=\"/panier\">Mon Panier</a></li>\n\n                <li style=\"background:gold\" ng-if=\"!$ctrl.getConnectedClient()\">\n                    <a href ng-click=\"$ctrl.connecter()\" class=\"login\">Connexion</a>\n                </li>\n\n\n                <li style=\"background: gold\" ng-if=\"!$ctrl.getConnectedClient()\">\n                    <a href=\"/inscription\" class=\"login\">Inscription</a>\n                </li>\n\n                <li style=\"background: gold\" ng-if=\"$ctrl.getConnectedClient()\">\n                    <a href=\"\" class=\"login\">Déconnexion</a>\n                </li>\n            </ul>\n        </div>\n    </div>\n</nav>"
+	module.exports = "<nav class='navbar nav-pills navbar-fixed-top'>\n\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\"\n              class=\"navbar-toggle collapsed\"\n              data-toggle=\"collapse\"\n              data-target=\"#navbar\"\n              aria-expanded=\"false\"\n              aria-controls=\"navbar\">\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                    </button>\n      <a href=\"/\">\n        <img class=\"logo\"\n             src=\"./img/pizza.png\">\n      </a>\n    </div>\n\n    <div id=\"navbar\"\n         class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li>\n          <a href=\"/\">Home</a>\n        </li>\n        <li>\n          <a href=\"/pizzas\"> Pizzas </a>\n        </li>\n\n      </ul>\n      <ul class=\"nav navbar-nav navbar-right\">\n        <li ng-if=\"$ctrl.getConnectedClient()\">\n          <a href=\"/compte\"> Mon Compte</a>\n        </li>\n\n        <li><a href=\"/panier\">Mon Panier\n        <panier-indicateur></panier-indicateur></a>\n        </li>\n\n        <li style=\"background:gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href\n             ng-click=\"$ctrl.connecter()\"\n             class=\"login\">Connexion</a>\n        </li>\n\n        <li style=\"background: gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href=\"/inscription\"\n             class=\"login\">Inscription</a>\n        </li>\n\n        <li style=\"background: gold\"\n            ng-if=\"$ctrl.getConnectedClient()\">\n          <a href=\"\"\n             class=\"login\">Déconnexion</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n</nav>\n"
 
 /***/ }),
 /* 91 */
@@ -44848,6 +44856,67 @@
 /***/ (function(module, exports) {
 
 	module.exports = "<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Informations personnelles </h1>\n    <button class=\"btn pull-right bouton\" ng-click=$ctrl.modifications() ng-if=\"!$ctrl.modif\"> Modifier </button>\n    <button class=\"btn pull-right bouton\" ng-click=$ctrl.modifications() ng-if=\"$ctrl.modif\"> Annuler </button>\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Nom :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.nom}}\n        <p ng-if=\"!$ctrl.clientConnecte.nom\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divNom\" class=\"form-group\">\n                <input id=\"nomClient\" name=\"nomClient\" ng-model=\"$ctrl.clientConnecte.nom\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n    </div>\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Prénom :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.prenom}}\n        <p ng-if=\"!$ctrl.clientConnecte.prenom\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divPrenom\" class=\"form-group\">\n                <input id=\"prenomClient\" name=\"prenomClient\" ng-model=\"$ctrl.clientConnecte.prenom\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n    </div>\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Email :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.email}}\n        <p ng-if=\"!$ctrl.clientConnecte.email\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divEmail\" class=\"form-group\">\n                <input id=\"emailClient\" name=\"emailClient\" required ng-model=\"$ctrl.clientConnecte.email\" type=\"email\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"formMAJ.emailClient.$error.email \n                    && formMAJ.emailClient.$touched\">Votre email est invalide !</p>\n                <p class=\"text-danger\" role=\"alert\" ng-if=\"formMAJ.emailClient.$error.required\">Veuillez rentrer un email !</p>\n            </div>\n        </form>\n    </div>\n\n    <!--<div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Mot de passe :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        ******\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divEmail\" class=\"form-group\">\n                <input id=\"mdpClient\" name=\"mdpClient\" ng-model=\"$ctrl.clientConnecte.motDePasse\" type=\"password\" value=\"Votre mot de passe\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"formInscription.mdpClient.$error.required \n                        && formInscription.mdpClient.$touched\">Veuillez rentrer un mot de passe !</p>\n\n                <input id=\"confMdpClient\" name=\"confMdpClient\" ng-model=\"$ctrl.confMdp\" type=\"password\" value=\"Confirmez votre mot de passe\" class=\"form-control\">\n                <p class=\"text-danger\" ng-if=\"$ctrl.clientConnecte.motDePasse !== $ctrl.confMdp && formInscription.mdpClient.$touched && formInscription.confMdpClient.$touched\">Les mots de passe ne sont pas identiques !</p>\n            </div>\n        </form>\n    </div>-->\n\n\n    <div class=\"col-lg-6 col-md-6 col-sm-6 col-xs-12\">\n        Adresse :\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12 \" ng-if=\"!$ctrl.modif\">\n        {{$ctrl.clientConnecte.adresse}}\n        <p ng-if=\"!$ctrl.clientConnecte.adresse\"> # </p>\n    </div>\n    <div class=\"col-lg-4 col-md-4 col-sm-4 col-xs-12\" ng-if=\"$ctrl.modif\">\n        <form name=\"formMAJ\">\n            <div name=\"divAdresse\" class=\"form-group\">\n                <input id=\"adresseClient\" name=\"adresseClient\" ng-model=\"$ctrl.clientConnecte.adresse\" type=\"text\" class=\"form-control\">\n            </div>\n        </form>\n        <button ng-disabled=\"formMAJ.$invalid\" type=\"submit\" class=\"btn bouton\" ng-click=\"$ctrl.soumissionFormulaire()\"> Modifier Informations </button>\n    </div>\n\n</div>\n\n</div>\n\n\n<!--<div class=\"col-lg-12 col-md-12 col-sm-12 col-xs-12\">\n    <h1> Commandes </h1>\n    <table class=\"table\">\n        <thead>\n            <tr>\n                <th> Date </th>\n                <th class=\"hidden-xs\"> N° de commande </th>\n                <th class=\"hidden-xs\"> Statut </th>\n                <th class=\"hidden-xs\"> Prix </th>\n                <th> Détails </th>\n            </tr>\n        </thead>\n        <tbody>\n            <<tr ng-repeat=\"commande from $ctrl.commandes\">\n                <td> commande.dateCommande </td>\n                <td class=\"hidden-xs\"> commande.numeroCommande </td>\n                <td class=\"hidden-xs\"> commande.statut </td>\n                <td class=\"hidden-xs\"> commande.prix </td>\n                <td> <a href=\"/commande/{{commande.id}}\" class=\"btn pull-right dernieres-pizzas\" role=\"button\"> Ajouter au panier </a> </td>x\n            </tr>-->\n</tbody>\n</div>"
+
+/***/ }),
+/* 93 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.PanierIndicateurComponent = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _panierIndicateur = __webpack_require__(94);
+	
+	var _panierIndicateur2 = _interopRequireDefault(_panierIndicateur);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var controller = function () {
+	  function controller(localStorageService) {
+	    _classCallCheck(this, controller);
+	
+	    this.localStorageService = localStorageService;
+	
+	    this.panier = this.localStorageService.get('panier', 'localStorage');
+	    this.pizzas = [];
+	    this.quantiteTotale = this.getQuantiteTotale();
+	    this.prixTotal = 0;
+	  }
+	
+	  _createClass(controller, [{
+	    key: 'getQuantiteTotale',
+	    value: function getQuantiteTotale() {
+	      var _this = this;
+	
+	      return this.panier ? 0 : this.panier.reduce(function (accumulateur, item) {
+	        return accumulateur + _this.panier.quantite;
+	      }, 0);
+	    }
+	  }]);
+	
+	  return controller;
+	}();
+	
+	;
+	
+	var PanierIndicateurComponent = exports.PanierIndicateurComponent = {
+	  bindings: {},
+	  controller: controller,
+	  template: _panierIndicateur2.default
+	};
+
+/***/ }),
+/* 94 */
+/***/ (function(module, exports) {
+
+	module.exports = "( {{$ctrl.quantiteTotale}} | {{$ctrl.prixTotal}} € )\n"
 
 /***/ })
 /******/ ]);
