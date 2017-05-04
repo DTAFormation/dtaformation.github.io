@@ -96,7 +96,7 @@
 	  $locationProvider.html5Mode(true);
 	}).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
 	  localStorageServiceProvider.setPrefix('pizzeriaLS');
-	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).service('PanierService', _panierService.PanierService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscription', _inscription.InscriptionComponent).component('connexion', _connexion.ConnexionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent).component('monCompte', _monCompte.MonCompteComponent).component('panierIndicateur', _panierIndicateur.PanierIndicateurComponent);
+	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).service('PanierService', _panierService.PanierService).service('CommandeService', _commande.CommandeService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscription', _inscription.InscriptionComponent).component('connexion', _connexion.ConnexionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent).component('monCompte', _monCompte.MonCompteComponent).component('panierIndicateur', _panierIndicateur.PanierIndicateurComponent).component('commande', _commande2.CommandeComponent);
 	
 	/* beautify preserve:start */
 
@@ -35363,7 +35363,7 @@
 /* 9 */
 /***/ (function(module, exports) {
 
-	'use strict';
+	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
 		value: true
@@ -35385,50 +35385,61 @@
 		}
 	
 		_createClass(CommandeService, [{
-			key: 'getCommandes',
+			key: "getCommandes",
 			value: function getCommandes() {
-				return this.$http.get(this.API_URL + '/commandes').then(function (r) {
+				var utilisateur = this.localStorageService.get("utilisateur", "localStorage");
+	
+				if (utilisateur) {
+					var token = this.localStorageService.get("token", "localStorage");
+					this.$http.defaults.headers.common.Authorization = "Bearer " + token;
+				}
+				return this.$http.get(this.API_URL + "/commandes").then(function (r) {
 					return r.data;
 				});
 			}
 		}, {
-			key: 'setCommande',
+			key: "setCommande",
 			value: function setCommande(type) {
 				var _this = this;
 	
-				this.ClientService.getClient(this.localStorageService.get('utilisateur', 'sessionStorage')).then(function (utilisateur) {
-					var pizzas = _this.localStorageService.get('pizzas', 'localStorage');
-					var panier = _this.localStorageService.get('panier', 'localStorage');
+				var utilisateur = this.localStorageService.get("utilisateur", "localStorage");
+				if (utilisateur) {
+					var token = this.localStorageService.get("token", "localStorage");
+					this.$http.defaults.headers.common.Authorization = "Bearer " + token;
 	
-					if (utilisateur !== '') {
+					this.ClientService.getClient(utilisateur.id).then(function (utilisateur) {
+						var pizzas = _this.localStorageService.get("pizzas", "localStorage");
+						var panier = _this.localStorageService.get("panier", "localStorage");
 	
-						var commandeComplete = {
-							'commande': {
-								'type': type,
-								'client': utilisateur
-							},
-							'commandesPizza': []
-						};
+						if (utilisateur !== "") {
+							var commandeComplete = {
+								commande: {
+									type: type,
+									client: utilisateur
+								},
+								commandesPizza: []
+							};
 	
-						panier.forEach(function (pizza) {
-							commandeComplete.commandesPizza.push({
-								'quantite': pizza.quantite,
-								'id': {
-									'pizza': pizza,
-									'commande': commandeComplete.commande
-								}
+							panier.forEach(function (pizza) {
+								commandeComplete.commandesPizza.push({
+									quantite: pizza.quantite,
+									id: {
+										pizza: pizza,
+										commande: commandeComplete.commande
+									}
+								});
 							});
-						});
-						_this.localStorageService.removeItem("panier");
+							_this.localStorageService.remove("panier");
 	
-						console.log(commandeComplete);
-						_this.$http.post(_this.API_URL + '/commandes', commandeComplete).then(function (r) {
-							return r.data;
-						});
-					} else {
-						alert('Vous avez été deconnecté pour une raison mystérieuse. Veuillez vous reloguer');
-					}
-				});
+							console.log(commandeComplete);
+							_this.$http.post(_this.API_URL + "/commandes", commandeComplete).then(function (r) {
+								return r.data;
+							});
+						} else {
+							alert("Vous avez été deconnecté pour une raison mystérieuse. Veuillez vous reloguer");
+						}
+					});
+				}
 			}
 		}]);
 
@@ -35494,13 +35505,18 @@
 	    }, {
 	        key: 'getConnectedClient',
 	        value: function getConnectedClient() {
-	            var id = parseInt(this.localStorageService.get('utilisateur', "sessionStorage"));
-	            return this.getClient(id);
+	            var utilisateur = this.localStorageService.get('utilisateur', "localStorage");
+	
+	            if (!utilisateur) return null;
+	            return this.getClient(parseInt(utilisateur.id));
 	        }
 	    }, {
 	        key: 'verifierUtilisateur',
 	        value: function verifierUtilisateur(email, motDePasse) {
+	            var _this = this;
+	
 	            return this.$http.get(this.API_URL + '/clients?email=' + email + '&motDePasse=' + (0, _jsSha2.default)(motDePasse)).then(function (resp) {
+	                _this.localStorageService.set("token", resp.headers().token, "localStorage");
 	                return resp.data;
 	            });
 	        }
@@ -44634,7 +44650,7 @@
 /* 84 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	'use strict';
+	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
@@ -44663,22 +44679,24 @@
 	    }
 	
 	    _createClass(controller, [{
-	        key: 'connexion',
+	        key: "connexion",
 	        value: function connexion() {
 	            var _this = this;
 	
 	            this.clientService.verifierUtilisateur(this.email, this.motDePasse).then(function (resp) {
-	                if (resp === -1) {
-	                    alert('ERREUR : Utilisateur non reconnu');
+	                console.log(resp);
+	
+	                _this.stockageService.set("utilisateur", resp, "localStorage");
+	                var pagePrecedente = _this.stockageService.get("pageRedirectionConnexion", "sessionStorage");
+	                if (!pagePrecedente) {
+	                    _this.$location.path("/");
 	                } else {
-	                    _this.stockageService.set('utilisateur', resp, 'sessionStorage');
-	                    var pagePrecedente = _this.stockageService.get('pageRedirectionConnexion');
-	                    if (!pagePrecedente) {
-	                        _this.$location.path('/');
-	                    } else {
-	                        _this.$location.path(pagePrecedente);
-	                    }
+	                    _this.$location.path(pagePrecedente);
 	                }
+	            }).catch(function (resp) {
+	                console.log(resp);
+	
+	                alert("ERREUR : " + resp.data.message);
 	            });
 	        }
 	    }]);
@@ -44789,7 +44807,7 @@
 	  }, {
 	    key: 'passerCommande',
 	    value: function passerCommande() {
-	      var utilisateur = this.localStorageService.get('utilisateur', 'sessionStorage');
+	      var utilisateur = this.localStorageService.get('utilisateur', 'localStorage');
 	      if (utilisateur) {
 	        console.log('hello');
 	        this.$location.path('/commande');
@@ -44819,10 +44837,10 @@
 /* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	'use strict';
+	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
-	  value: true
+	    value: true
 	});
 	exports.NavbarComponent = undefined;
 	
@@ -44837,41 +44855,54 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var controller = function () {
-	  function controller(localStorageService, $location, ClientService) {
-	    _classCallCheck(this, controller);
+	    function controller(localStorageService, $location, ClientService, $http) {
+	        _classCallCheck(this, controller);
 	
-	    this.ClientService = ClientService;
-	    this.stockageService = localStorageService;
-	    this.$location = $location;
-	  }
-	
-	  _createClass(controller, [{
-	    key: 'getConnectedClient',
-	    value: function getConnectedClient() {
-	      return parseInt(this.stockageService.get('utilisateur', 'sessionStorage'));
+	        this.ClientService = ClientService;
+	        this.stockageService = localStorageService;
+	        this.$location = $location;
+	        this.$http = $http;
 	    }
-	  }, {
-	    key: 'connecter',
-	    value: function connecter() {
-	      this.stockageService.set('pageRedirectionConnexion', this.$location.path(), 'sessionStorage');
-	      this.$location.path('/connexion');
-	    }
-	  }]);
 	
-	  return controller;
+	    _createClass(controller, [{
+	        key: "getConnectedClient",
+	        value: function getConnectedClient() {
+	            var utilisateur = this.stockageService.get("utilisateur", "localStorage");
+	
+	            if (!utilisateur) return null;
+	
+	            return parseInt(utilisateur.id);
+	        }
+	    }, {
+	        key: "connecter",
+	        value: function connecter() {
+	            this.stockageService.set("pageRedirectionConnexion", this.$location.path(), "sessionStorage");
+	            this.$location.path("/connexion");
+	        }
+	    }, {
+	        key: "deconnexion",
+	        value: function deconnexion() {
+	            this.stockageService.remove("utilisateur", "localStorage");
+	            this.stockageService.remove("token", "localStorage");
+	            this.$http.defaults.headers.common = {};
+	            this.$location.path("/");
+	        }
+	    }]);
+	
+	    return controller;
 	}();
 	
 	var NavbarComponent = exports.NavbarComponent = {
-	  bindings: {},
-	  controller: controller,
-	  template: _navbar2.default
+	    bindings: {},
+	    controller: controller,
+	    template: _navbar2.default
 	};
 
 /***/ }),
 /* 91 */
 /***/ (function(module, exports) {
 
-	module.exports = "<nav class='navbar nav-pills navbar-fixed-top'>\n\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\"\n              class=\"navbar-toggle collapsed\"\n              data-toggle=\"collapse\"\n              data-target=\"#navbar\"\n              aria-expanded=\"false\"\n              aria-controls=\"navbar\">\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                    </button>\n      <a href=\"/\">\n        <img class=\"logo\"\n             src=\"./img/pizza.png\">\n      </a>\n    </div>\n\n    <div id=\"navbar\"\n         class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li>\n          <a href=\"/\">Accueil</a>\n        </li>\n        <li>\n          <a href=\"/pizzas\"> Pizzas </a>\n        </li>\n\n      </ul>\n      <ul class=\"nav navbar-nav navbar-right\">\n        <li ng-if=\"$ctrl.getConnectedClient()\">\n          <a href=\"/compte\"> Mon Compte</a>\n        </li>\n\n        <li><a href=\"/panier\">Mon Panier\n        <panier-indicateur></panier-indicateur></a>\n        </li>\n\n        <li style=\"background:gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href\n             ng-click=\"$ctrl.connecter()\"\n             class=\"login\">Connexion</a>\n        </li>\n\n        <li style=\"background: gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href=\"/inscription\"\n             class=\"login\">Inscription</a>\n        </li>\n\n        <li style=\"background: gold\"\n            ng-if=\"$ctrl.getConnectedClient()\">\n          <a href=\"\"\n             class=\"login\">Déconnexion</a>\n        </li>\n      </ul>\n    </div>\n  </div>\n</nav>\n"
+	module.exports = "<nav class='navbar nav-pills navbar-fixed-top'>\n\n  <div class=\"container-fluid\">\n    <div class=\"navbar-header\">\n      <button type=\"button\"\n              class=\"navbar-toggle collapsed\"\n              data-toggle=\"collapse\"\n              data-target=\"#navbar\"\n              aria-expanded=\"false\"\n              aria-controls=\"navbar\">\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                        <span class=\"icon-bar\"></span>\n                    </button>\n      <a href=\"/\">\n        <img class=\"logo\"\n             src=\"./img/pizza.png\">\n      </a>\n    </div>\n\n    <div id=\"navbar\"\n         class=\"navbar-collapse collapse\">\n      <ul class=\"nav navbar-nav\">\n        <li>\n          <a href=\"/\">Accueil</a>\n        </li>\n        <li>\n          <a href=\"/pizzas\"> Pizzas </a>\n        </li>\n\n      </ul>\n      <ul class=\"nav navbar-nav navbar-right\">\n        <li ng-if=\"$ctrl.getConnectedClient()\">\n          <a href=\"/compte\"> Mon Compte</a>\n        </li>\n\n        <li><a href=\"/panier\">Mon Panier\n        <panier-indicateur></panier-indicateur></a>\n        </li>\n\n        <li style=\"background:gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href\n             ng-click=\"$ctrl.connecter()\"\n             class=\"login\">Connexion</a>\n        </li>\n\n        <li style=\"background: gold\"\n            ng-if=\"!$ctrl.getConnectedClient()\">\n          <a href=\"/inscription\"\n             class=\"login\">Inscription</a>\n        </li>\n\n                <li style=\"background: gold\" ng-if=\"$ctrl.getConnectedClient()\" ng-click=\"$ctrl.deconnexion()\">\n                    <a href=\"\" class=\"login\">Déconnexion</a>\n                </li>\n            </ul>\n        </div>\n\n\n    </div>\n  </div>\n</nav>\n"
 
 /***/ }),
 /* 92 */
