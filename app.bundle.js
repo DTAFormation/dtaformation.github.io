@@ -44267,7 +44267,7 @@
 	      if (!this.panier) return 0;
 	      return this.panier.reduce(function (accumulateur, item) {
 	        return accumulateur + _this2.getPizzabyId(item.id).prix * item.quantite;
-	      }, 0);
+	      }, 0).toFixed(2);
 	    }
 	  }, {
 	    key: 'getQuantiteTotale',
