@@ -88,17 +88,18 @@
 	
 	var _panierIndicateur = __webpack_require__(94);
 	
+	var _alert = __webpack_require__(96);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	/* beautify preserve:end */
 	
-	_angular2.default.module('pizzeria', [_angularRoute2.default, 'LocalStorageModule']).value('API_URL', ("https://app-b325c1a6-237a-4e11-bdde-39f93eee7f51.cleverapps.io")).config(_routes.routes).config(function ($routeProvider, $locationProvider) {
+	/* beautify preserve:start */
+	_angular2.default.module('pizzeria', [_angularRoute2.default, 'LocalStorageModule', _alert.AlertModule]).value('API_URL', ("https://app-b325c1a6-237a-4e11-bdde-39f93eee7f51.cleverapps.io")).config(_routes.routes).config(function ($routeProvider, $locationProvider) {
 	  $locationProvider.html5Mode(true);
 	}).config(['localStorageServiceProvider', function (localStorageServiceProvider) {
 	  localStorageServiceProvider.setPrefix('pizzeriaLS');
 	}]).service('PizzaService', _pizza.PizzaService).service('ClientService', _client.ClientService).service('PanierService', _panierService.PanierService).service('CommandeService', _commande.CommandeService).component('pizza', _pizza2.PizzaComponent).component('listePizzas', _listePizzas.ListePizzasComponent).component('home', _home.HomeComponent).component('ajouterPanier', _ajouterPanier.AjouterPanierComponent).component('inscription', _inscription.InscriptionComponent).component('connexion', _connexion.ConnexionComponent).component('panier', _panier.PanierComponent).component('navbar', _navbar.NavbarComponent).component('monCompte', _monCompte.MonCompteComponent).component('panierIndicateur', _panierIndicateur.PanierIndicateurComponent).component('commande', _commande2.CommandeComponent);
-	
-	/* beautify preserve:start */
 
 /***/ }),
 /* 1 */
@@ -35374,10 +35375,12 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var CommandeService = exports.CommandeService = function () {
-		function CommandeService($http, API_URL, localStorageService, ClientService, $q) {
+		function CommandeService($http, API_URL, localStorageService, ClientService, $q, $location, PanierService) {
 			_classCallCheck(this, CommandeService);
 	
+			this.PanierService = PanierService;
 			this.localStorageService = localStorageService;
+			this.$location = $location;
 			this.ClientService = ClientService;
 			this.$http = $http;
 			this.$q = $q;
@@ -35435,6 +35438,8 @@
 							_this.$http.post(_this.API_URL + "/commandes", commandeComplete).then(function (r) {
 								return r.data;
 							});
+							_this.PanierService.panier = '';
+							_this.$location.path('/');
 						} else {
 							alert("Vous avez été deconnecté pour une raison mystérieuse. Veuillez vous reloguer");
 						}
@@ -44529,10 +44534,11 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var controller = function () {
-		function controller(CommandeService) {
+		function controller(CommandeService, AlertService) {
 			_classCallCheck(this, controller);
 	
 			this.CommandeService = CommandeService;
+			this.AlertService = AlertService;
 		}
 	
 		_createClass(controller, [{
@@ -44554,6 +44560,7 @@
 			key: 'setCommande',
 			value: function setCommande() {
 				this.CommandeService.setCommande(this.commandeType);
+				this.AlertService.addAlert("Commande passée", "success");
 			}
 		}]);
 	
@@ -44737,17 +44744,19 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	var controller = function () {
-	  function controller(localStorageService, PanierService) {
+	  function controller(localStorageService, PanierService, AlertService) {
 	    _classCallCheck(this, controller);
 	
 	    this.StockageService = localStorageService;
 	    this.ps = PanierService;
+	    this.AlertService = AlertService;
 	  }
 	
 	  _createClass(controller, [{
 	    key: 'ajouterAuStockageLocal',
 	    value: function ajouterAuStockageLocal() {
 	      this.ps.ajouterAuStockageLocal(this.item);
+	      this.AlertService.addAlert('Pizza ajoutée à votre panier', 'success');
 	    }
 	  }]);
 	
@@ -45068,6 +45077,69 @@
 /***/ (function(module, exports) {
 
 	module.exports = "( {{$ctrl.ps.getQuantiteTotale()}} | {{$ctrl.ps.getPrixTotal()}} € )"
+
+/***/ }),
+/* 96 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.AlertModule = undefined;
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _angular = __webpack_require__(1);
+	
+	var _angular2 = _interopRequireDefault(_angular);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var AlertModule = exports.AlertModule = _angular2.default.module('alert.module', []).service('AlertService', function () {
+	    function AlertService($timeout) {
+	        _classCallCheck(this, AlertService);
+	
+	        this.alert = {
+	            message: '',
+	            level: ''
+	        };
+	        this.$timeout = $timeout;
+	    }
+	
+	    _createClass(AlertService, [{
+	        key: 'addAlert',
+	        value: function addAlert(message, level) {
+	            var _this = this;
+	
+	            this.alert.message = message;
+	            this.alert.level = 'alert-' + level;
+	            this.$timeout(7000).then(function () {
+	                return _this.alert.message = '';
+	            });
+	        }
+	    }]);
+	
+	    return AlertService;
+	}()).controller('AlertController', function () {
+	    function AlertController(AlertService) {
+	        _classCallCheck(this, AlertController);
+	
+	        this.alert = AlertService.alert;
+	    }
+	
+	    _createClass(AlertController, [{
+	        key: 'close',
+	        value: function close() {
+	            this.alert.message = '';
+	        }
+	    }]);
+	
+	    return AlertController;
+	}()).name;
 
 /***/ })
 /******/ ]);
